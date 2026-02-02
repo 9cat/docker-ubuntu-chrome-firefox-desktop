@@ -9,11 +9,30 @@ echo "========================================"
 mkdir -p /var/run/sshd
 /usr/sbin/sshd
 
+# Create .vnc directory and xstartup for user
+USER_HOME="/home/${USER}"
+mkdir -p ${USER_HOME}/.vnc
+chown -R ${USER}:${USER} ${USER_HOME}/.vnc
+
+# Create xstartup to auto-select XFCE (avoids interactive prompt)
+cat > ${USER_HOME}/.vnc/xstartup << 'EOF'
+#!/bin/bash
+unset SESSION_MANAGER
+unset DBUS_SESSION_BUS_ADDRESS
+export XDG_SESSION_TYPE=x11
+exec startxfce4
+EOF
+chmod +x ${USER_HOME}/.vnc/xstartup
+chown ${USER}:${USER} ${USER_HOME}/.vnc/xstartup
+
+# Create Xauthority file
+touch ${USER_HOME}/.Xauthority
+chown ${USER}:${USER} ${USER_HOME}/.Xauthority
+
 # Set VNC password
 su - ${USER} -c "echo -e '${VNC_PASSWORD}\n${VNC_PASSWORD}' | vncpasswd -u ${USER} -w"
 
 # Start KasmVNC with HTTPS support
-# -cert and -key options enable HTTPS
 su - ${USER} -c "kasmvncserver :1 \
     -plainport 5901 \
     -webport 6901 \
