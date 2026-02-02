@@ -141,13 +141,14 @@ RUN mkdir -p /root/.vnc && \
     touch /root/.Xauthority
 
 # ============================================
-# 11. Generate self-signed SSL certificate for HTTPS
+# 11. Generate self-signed SSL certificate for HTTPS (with SAN)
 # ============================================
 RUN mkdir -p /etc/kasmvnc/ssl && \
     openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
         -keyout /etc/kasmvnc/ssl/kasmvnc.key \
         -out /etc/kasmvnc/ssl/kasmvnc.crt \
-        -subj "/C=US/ST=State/L=City/O=Organization/CN=localhost" && \
+        -subj "/C=US/ST=State/L=City/O=Organization/CN=localhost" \
+        -addext "subjectAltName=DNS:localhost,IP:127.0.0.1" && \
     chmod 644 /etc/kasmvnc/ssl/kasmvnc.key && \
     chmod 644 /etc/kasmvnc/ssl/kasmvnc.crt
 
