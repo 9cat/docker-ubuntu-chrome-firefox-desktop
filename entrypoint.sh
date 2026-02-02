@@ -13,10 +13,8 @@ mkdir -p /var/run/sshd
 mkdir -p /home/${USER}/.vnc
 chown -R ${USER}:${USER} /home/${USER}/.vnc
 
-# Create KasmVNC password file non-interactively
-su - ${USER} -c "mkdir -p ~/.vnc"
-su - ${USER} -c "echo '${VNC_PASSWORD}' | vncpasswd -f > ~/.vnc/passwd"
-chmod 600 /home/${USER}/.vnc/passwd
+# Create KasmVNC password file (KasmVNC uses echo with newlines)
+su - ${USER} -c "echo -e '${VNC_PASSWORD}\n${VNC_PASSWORD}' | vncpasswd -u ${USER} -w"
 
 # Start KasmVNC with display :1 (non-interactive)
 su - ${USER} -c "DISPLAY=:1 vncserver :1 -localhost no -cert none -plainport 6901 -depth 24 -geometry 1920x1080" || true
