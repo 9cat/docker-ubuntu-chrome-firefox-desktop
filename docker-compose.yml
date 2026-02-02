@@ -7,6 +7,7 @@ services:
     ports:
       - "10022:22"
       - "16901:6901"
+      - "51200-51239:51200-51239"
     environment:
       - USER=${USER:-ubuntu}
       - PASSWORD=${PASSWORD:-ubuntu}

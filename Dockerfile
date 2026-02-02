@@ -75,7 +75,7 @@ RUN userdel -r ${USER} 2>/dev/null || true && \
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-EXPOSE 22 6901
+EXPOSE 22 6901 51200-51239
 HEALTHCHECK CMD pgrep xfce4-session || exit 1
 
 ENTRYPOINT ["/entrypoint.sh"]
