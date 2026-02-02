@@ -1,6 +1,7 @@
 # ============================================
 # Ubuntu Desktop Development Environment
 # Chrome + Firefox + KasmVNC
+# Following official KasmVNC installation guide
 # ============================================
 
 FROM ubuntu:24.04
@@ -12,8 +13,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     TZ=Asia/Shanghai \
     USER=ubuntu \
     PASSWORD=ubuntu \
-    VNC_PASSWORD=ubuntu \
-    DISPLAY=:1
+    VNC_PASSWORD=ubuntu
 
 # ============================================
 # 1. Base packages
@@ -22,7 +22,7 @@ RUN apt-get update && \
     apt-get upgrade -y && \
     apt-get install -y --no-install-recommends \
         ca-certificates curl wget gnupg sudo locales tzdata \
-        openssh-server software-properties-common && \
+        openssh-server software-properties-common ssl-cert && \
     locale-gen en_US.UTF-8 && \
     rm -rf /var/lib/apt/lists/*
 
@@ -38,12 +38,13 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # ============================================
-# 3. KasmVNC - Ubuntu 24.04 noble
+# 3. KasmVNC - Official installation
+#    Following: https://github.com/kasmtech/KasmVNC
 # ============================================
-RUN wget -q https://github.com/kasmtech/KasmVNC/releases/download/v1.3.2/kasmvncserver_noble_1.3.2_amd64.deb -O /tmp/kasmvnc.deb && \
+RUN wget -q https://github.com/kasmtech/KasmVNC/releases/download/v1.3.2/kasmvncserver_noble_1.3.2_amd64.deb -O /tmp/kasmvncserver.deb && \
     apt-get update && \
-    apt-get install -y /tmp/kasmvnc.deb && \
-    rm -f /tmp/kasmvnc.deb && \
+    apt-get install -y /tmp/kasmvncserver.deb && \
+    rm -f /tmp/kasmvncserver.deb && \
     rm -rf /var/lib/apt/lists/*
 
 # ============================================
@@ -56,30 +57,20 @@ RUN wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd6
     rm -rf /var/lib/apt/lists/*
 
 # ============================================
-# 5. User setup
+# 5. User setup (add to ssl-cert group for KasmVNC)
 # ============================================
 RUN userdel -r ${USER} 2>/dev/null || true && \
     useradd -m -s /bin/bash -u 1000 ${USER} && \
     echo "${USER}:${PASSWORD}" | chpasswd && \
-    usermod -aG sudo ${USER}
+    usermod -aG sudo ${USER} && \
+    usermod -aG ssl-cert ${USER}
 
 # ============================================
-# 6. Pre-configure KasmVNC (bypass interactive setup)
+# 6. Pre-configure KasmVNC (avoid interactive setup)
 # ============================================
 RUN mkdir -p /home/${USER}/.vnc && \
-    chown -R ${USER}:${USER} /home/${USER}/.vnc
-
-# Create kasmvnc.yaml config to skip first-run setup
-RUN echo "# KasmVNC config" > /home/${USER}/.vnc/kasmvnc.yaml && \
-    echo "environment:" >> /home/${USER}/.vnc/kasmvnc.yaml && \
-    echo "  scale: 1" >> /home/${USER}/.vnc/kasmvnc.yaml && \
-    echo "desktop:" >> /home/${USER}/.vnc/kasmvnc.yaml && \
-    echo "  xfce:" >> /home/${USER}/.vnc/kasmvnc.yaml && \
-    echo "    show_full: true" >> /home/${USER}/.vnc/kasmvnc.yaml && \
-    chown ${USER}:${USER} /home/${USER}/.vnc/kasmvnc.yaml
-
-# Create xstartup to launch xfce4
-RUN echo '#!/bin/bash' > /home/${USER}/.vnc/xstartup && \
+    chown -R ${USER}:${USER} /home/${USER}/.vnc && \
+    echo '#!/bin/bash' > /home/${USER}/.vnc/xstartup && \
     echo 'unset SESSION_MANAGER' >> /home/${USER}/.vnc/xstartup && \
     echo 'unset DBUS_SESSION_BUS_ADDRESS' >> /home/${USER}/.vnc/xstartup && \
     echo 'exec startxfce4' >> /home/${USER}/.vnc/xstartup && \
@@ -92,7 +83,9 @@ RUN echo '#!/bin/bash' > /home/${USER}/.vnc/xstartup && \
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
+# KasmVNC web interface port + display port
 EXPOSE 22 6901 51200-51239
+
 HEALTHCHECK CMD pgrep xfce4-session || exit 1
 
 ENTRYPOINT ["/entrypoint.sh"]
