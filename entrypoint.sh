@@ -57,9 +57,9 @@ cat > ~/Desktop/firefox.desktop << 'FIREFOX'
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=Firefox
-Exec=firefox %U
-Icon=firefox
+Name=Firefox ESR
+Exec=firefox-esr %U
+Icon=firefox-esr
 Terminal=false
 Categories=Network;WebBrowser;
 FIREFOX

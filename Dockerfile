@@ -105,9 +105,9 @@ RUN mkdir -p /home/ubuntu/Desktop && \
     echo '[Desktop Entry]' > /home/ubuntu/Desktop/firefox.desktop && \
     echo 'Version=1.0' >> /home/ubuntu/Desktop/firefox.desktop && \
     echo 'Type=Application' >> /home/ubuntu/Desktop/firefox.desktop && \
-    echo 'Name=Firefox' >> /home/ubuntu/Desktop/firefox.desktop && \
-    echo 'Exec=firefox %U' >> /home/ubuntu/Desktop/firefox.desktop && \
-    echo 'Icon=firefox' >> /home/ubuntu/Desktop/firefox.desktop && \
+    echo 'Name=Firefox ESR' >> /home/ubuntu/Desktop/firefox.desktop && \
+    echo 'Exec=firefox-esr %U' >> /home/ubuntu/Desktop/firefox.desktop && \
+    echo 'Icon=firefox-esr' >> /home/ubuntu/Desktop/firefox.desktop && \
     echo 'Terminal=false' >> /home/ubuntu/Desktop/firefox.desktop && \
     echo 'Categories=Network;WebBrowser;' >> /home/ubuntu/Desktop/firefox.desktop && \
     chmod +x /home/ubuntu/Desktop/firefox.desktop && \
