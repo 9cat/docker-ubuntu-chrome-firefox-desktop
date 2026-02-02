@@ -1,6 +1,6 @@
 # ============================================
 # Ubuntu Desktop Development Environment
-# Chrome + Firefox + KasmVNC
+# Chrome + Firefox + TigerVNC + noVNC
 # ============================================
 
 FROM ubuntu:24.04
@@ -12,7 +12,8 @@ ENV DEBIAN_FRONTEND=noninteractive \
     TZ=Asia/Shanghai \
     USER=ubuntu \
     PASSWORD=ubuntu \
-    VNC_PASSWORD=ubuntu
+    VNC_PASSWORD=ubuntu \
+    DISPLAY=:1
 
 # ============================================
 # 1. Base packages
@@ -36,12 +37,13 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # ============================================
-# 3. KasmVNC - Ubuntu 24.04 (noble)
+# 3. TigerVNC + noVNC
 # ============================================
-RUN wget -q https://github.com/kasmtech/KasmVNC/releases/download/v1.3.2/kasmvncserver_noble_1.3.2_amd64.deb -O /tmp/kasmvnc.deb && \
-    apt-get update && \
-    apt-get install -y /tmp/kasmvnc.deb && \
-    rm -f /tmp/kasmvnc.deb && \
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        tigervnc-standalone-server tigervnc-xorg-extension \
+        tigervnc-common \
+        websockify python3-websockify novnc && \
     rm -rf /var/lib/apt/lists/*
 
 # ============================================
@@ -75,7 +77,7 @@ RUN userdel -r ${USER} 2>/dev/null || true && \
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-EXPOSE 22 6901 51200-51239
+EXPOSE 22 5901 6901 51200-51239
 HEALTHCHECK CMD pgrep xfce4-session || exit 1
 
 ENTRYPOINT ["/entrypoint.sh"]
