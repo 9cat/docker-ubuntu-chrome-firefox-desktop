@@ -1,3 +1,7 @@
+# Ubuntu Desktop Development Environment
+# Access: https://localhost:16901 (VNC) | ssh ubuntu@localhost -p 10022
+# Default credentials: ubuntu / ubuntu
+
 services:
   desktop:
     build: .
@@ -5,9 +9,9 @@ services:
     container_name: ubuntu-desktop
     restart: unless-stopped
     ports:
-      - "10022:22"
-      - "16901:6901"
-      - "51200-51239:51200-51239"
+      - "10022:22"              # SSH access
+      - "16901:6901"            # KasmVNC web interface (HTTPS)
+      # - "51200-51239:51200-51239"  # Optional: additional service ports
     environment:
       - USER=${USER:-ubuntu}
       - PASSWORD=${PASSWORD:-ubuntu}
@@ -16,7 +20,11 @@ services:
     volumes:
       - desktop-data:/home/ubuntu
     cap_add:
-      - SYS_PTRACE
+      - SYS_PTRACE              # Required for debugging tools
+    # Uncomment for shared memory (improves Chrome performance)
+    # shm_size: 2gb
 
 volumes:
   desktop-data:
+    # Persistent storage for user data
+    # Use 'docker compose down -v' to reset

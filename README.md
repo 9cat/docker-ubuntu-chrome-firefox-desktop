@@ -1,39 +1,173 @@
 # Ubuntu Desktop Development Environment
 
+Minimal Ubuntu Desktop environment with Chrome + Firefox + KasmVNC for remote browser access.
+
 极简的 Ubuntu 桌面开发环境，包含 Chrome + Firefox + KasmVNC。
 
-## 快速开始
+## Features
+
+- **Ubuntu 24.04** base image
+- **XFCE4** lightweight desktop environment
+- **KasmVNC** web-based remote desktop (HTTPS)
+- **Chrome** + **Firefox ESR** browsers pre-installed
+- **Auto-trusted SSL certificates** - no browser warnings
+- **SSH access** for terminal operations
+- **Persistent storage** via Docker volumes
+
+## Quick Start
+
+### Option 1: Build from source
 
 ```bash
 git clone https://github.com/9cat/docker-ubuntu-chrome-firefox-desktop.git
 cd docker-ubuntu-chrome-firefox-desktop
-./start.sh
+docker compose up -d --build
 ```
 
-## 访问
+### Option 2: Use pre-built image
 
-- **Web**: https://localhost:16901
-- **SSH**: ssh ubuntu@localhost -p 10022
-- **用户**: ubuntu
-- **密码**: ubuntu
+```yaml
+# docker-compose.yml
+services:
+  desktop:
+    image: ghcr.io/9cat/docker-ubuntu-chrome-firefox-desktop:latest
+    container_name: ubuntu-desktop
+    restart: unless-stopped
+    ports:
+      - "10022:22"     # SSH
+      - "16901:6901"   # KasmVNC Web
+    environment:
+      - PASSWORD=ubuntu
+      - VNC_PASSWORD=ubuntu
+      - TZ=Asia/Shanghai
+    volumes:
+      - desktop-data:/home/ubuntu
 
-> 注意：CA证书会自动安装到Chrome和Firefox的信任存储中，无需手动操作。
+volumes:
+  desktop-data:
+```
 
-## 组件
+## Access
 
-- **基础镜像**: Ubuntu 24.04 (官方纯净镜像)
-- **桌面**: xfce4
-- **远程访问**: KasmVNC
-- **浏览器**: Chrome + Firefox
+| Service | URL | Default Credentials |
+|---------|-----|---------------------|
+| **Web Desktop** | https://localhost:16901 | ubuntu / ubuntu |
+| **SSH** | `ssh ubuntu@localhost -p 10022` | ubuntu / ubuntu |
 
-## 管理命令
+> **Note**: CA certificate is automatically installed in Chrome and Firefox inside the container. No manual certificate import needed.
+
+## Port Configuration
+
+| Port | Service | Description |
+|------|---------|-------------|
+| `22` | SSH | Secure shell access |
+| `6901` | KasmVNC | Web-based VNC (HTTPS) |
+| `51200-51239` | Reserved | Additional services (optional) |
+
+### Custom Ports
+
+Edit `docker-compose.yml` to change port mappings:
+
+```yaml
+ports:
+  - "2222:22"      # SSH on port 2222
+  - "8443:6901"    # VNC on port 8443
+```
+
+## Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `USER` | ubuntu | System username |
+| `PASSWORD` | ubuntu | System & SSH password |
+| `VNC_PASSWORD` | ubuntu | VNC login password |
+| `TZ` | Asia/Shanghai | Timezone |
+
+### Custom Credentials
+
+Create a `.env` file:
 
 ```bash
-./start.sh      # 启动
-docker compose down    # 停止
-docker compose logs -f # 查看日志
+PASSWORD=mysecretpassword
+VNC_PASSWORD=mysecretpassword
+TZ=America/New_York
 ```
 
-## 作者
+Or set directly in `docker-compose.yml`:
+
+```yaml
+environment:
+  - PASSWORD=mysecretpassword
+  - VNC_PASSWORD=mysecretpassword
+```
+
+## Management Commands
+
+```bash
+# Start
+docker compose up -d
+
+# Stop
+docker compose down
+
+# View logs
+docker compose logs -f
+
+# Rebuild (after updates)
+docker compose up -d --build
+
+# Enter container shell
+docker exec -it ubuntu-desktop bash
+
+# Reset (delete all data)
+docker compose down -v
+```
+
+## Browser Usage
+
+Both browsers are accessible from the desktop:
+
+- **Chrome**: Click the Chrome icon or run `/usr/local/bin/chrome`
+- **Firefox**: Click the Firefox icon or run `firefox-esr`
+
+Chrome runs with `--no-sandbox` flag (required for Docker).
+
+## Security Notes
+
+- Default passwords should be changed for production use
+- The container generates self-signed CA certificates for HTTPS
+- CA is automatically trusted by browsers inside the container
+- External browsers will show certificate warnings (expected)
+
+## Troubleshooting
+
+### Cannot connect to VNC
+```bash
+# Check if container is running
+docker ps
+
+# Check logs
+docker compose logs -f
+```
+
+### Browser won't start
+```bash
+# SSH into container and check
+docker exec -it ubuntu-desktop bash
+chrome --version
+firefox-esr --version
+```
+
+### Reset to clean state
+```bash
+docker compose down -v
+docker compose up -d --build
+```
+
+## License
+
+MIT
+
+## Author
 
 temple <temple@iobond.com>
