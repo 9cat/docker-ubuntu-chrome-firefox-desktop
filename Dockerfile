@@ -1,8 +1,7 @@
 # ============================================
 # Ubuntu Desktop Development Environment
 # Chrome + Firefox + KasmVNC
-# Default: HTTP (no certificate errors)
-# Optional: Set VNC_SSL=1 for HTTPS
+# HTTPS enabled with auto-trusted certificates
 # ============================================
 
 FROM ubuntu:24.04
@@ -24,7 +23,7 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         ca-certificates curl wget gnupg sudo locales tzdata \
         openssh-server software-properties-common ssl-cert openssl \
-        tmux htop vim && \
+        tmux htop vim libnss3-tools && \
     locale-gen en_US.UTF-8 && \
     rm -rf /var/lib/apt/lists/*
 
@@ -143,16 +142,33 @@ RUN mkdir -p /root/.vnc && \
     touch /root/.Xauthority
 
 # ============================================
-# 11. Generate self-signed SSL certificate for HTTPS (with SAN)
+# 11. Generate CA and SSL certificates for HTTPS
 # ============================================
 RUN mkdir -p /etc/kasmvnc/ssl && \
-    openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-        -keyout /etc/kasmvnc/ssl/kasmvnc.key \
-        -out /etc/kasmvnc/ssl/kasmvnc.crt \
-        -subj "/C=US/ST=State/L=City/O=Organization/CN=localhost" \
-        -addext "subjectAltName=DNS:localhost,IP:127.0.0.1" && \
-    chmod 644 /etc/kasmvnc/ssl/kasmvnc.key && \
-    chmod 644 /etc/kasmvnc/ssl/kasmvnc.crt
+    # Generate CA private key
+    openssl genrsa -out /etc/kasmvnc/ssl/ca.key 2048 && \
+    # Generate CA certificate
+    openssl req -x509 -new -nodes -key /etc/kasmvnc/ssl/ca.key \
+        -sha256 -days 3650 -out /etc/kasmvnc/ssl/ca.crt \
+        -subj "/C=US/ST=State/L=City/O=KasmVNC CA/CN=KasmVNC Root CA" && \
+    # Generate server private key
+    openssl genrsa -out /etc/kasmvnc/ssl/kasmvnc.key 2048 && \
+    # Create certificate signing request
+    openssl req -new -key /etc/kasmvnc/ssl/kasmvnc.key \
+        -out /etc/kasmvnc/ssl/kasmvnc.csr \
+        -subj "/C=US/ST=State/L=City/O=KasmVNC/CN=localhost" && \
+    # Create extension file for SAN
+    echo "subjectAltName=DNS:localhost,IP:127.0.0.1" > /etc/kasmvnc/ssl/ext.cnf && \
+    # Sign server certificate with CA
+    openssl x509 -req -in /etc/kasmvnc/ssl/kasmvnc.csr \
+        -CA /etc/kasmvnc/ssl/ca.crt -CAkey /etc/kasmvnc/ssl/ca.key \
+        -CAcreateserial -out /etc/kasmvnc/ssl/kasmvnc.crt \
+        -days 365 -sha256 -extfile /etc/kasmvnc/ssl/ext.cnf && \
+    # Set permissions
+    chmod 644 /etc/kasmvnc/ssl/*.key /etc/kasmvnc/ssl/*.crt && \
+    # Install CA to system trust store
+    cp /etc/kasmvnc/ssl/ca.crt /usr/local/share/ca-certificates/kasmvnc-ca.crt && \
+    update-ca-certificates
 
 # ============================================
 # 12. SSH config - allow password auth

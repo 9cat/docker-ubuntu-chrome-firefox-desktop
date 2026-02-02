@@ -20,6 +20,52 @@ chmod 600 ~/.ssh/authorized_keys
 sudo mkdir -p /var/run/sshd
 sudo /usr/sbin/sshd
 
+# ============================================
+# Install CA certificate for browsers
+# ============================================
+echo "Installing CA certificate for browsers..."
+
+# Install CA cert for Chrome (uses shared NSS database)
+mkdir -p ~/.pki/nssdb
+# Initialize NSS database if it doesn't exist
+if [ ! -f ~/.pki/nssdb/cert9.db ]; then
+    certutil -d sql:$HOME/.pki/nssdb -N --empty-password
+fi
+# Remove old CA if exists and add new one
+certutil -d sql:$HOME/.pki/nssdb -D -n "KasmVNC CA" 2>/dev/null || true
+certutil -d sql:$HOME/.pki/nssdb -A -n "KasmVNC CA" -t "CT,C,C" -i /etc/kasmvnc/ssl/ca.crt
+
+# Install CA cert for Firefox (uses per-profile NSS database)
+# Firefox ESR creates profile on first run, so we pre-create one
+FIREFOX_PROFILE_DIR="$HOME/.mozilla/firefox"
+mkdir -p "$FIREFOX_PROFILE_DIR"
+
+# Create profiles.ini if it doesn't exist
+if [ ! -f "$FIREFOX_PROFILE_DIR/profiles.ini" ]; then
+    mkdir -p "$FIREFOX_PROFILE_DIR/default"
+    cat > "$FIREFOX_PROFILE_DIR/profiles.ini" << 'PROFILES'
+[General]
+StartWithLastProfile=1
+
+[Profile0]
+Name=default
+IsRelative=1
+Path=default
+Default=1
+PROFILES
+fi
+
+# Initialize Firefox NSS database and add CA cert
+FIREFOX_DEFAULT="$FIREFOX_PROFILE_DIR/default"
+mkdir -p "$FIREFOX_DEFAULT"
+if [ ! -f "$FIREFOX_DEFAULT/cert9.db" ]; then
+    certutil -d sql:$FIREFOX_DEFAULT -N --empty-password
+fi
+certutil -d sql:$FIREFOX_DEFAULT -D -n "KasmVNC CA" 2>/dev/null || true
+certutil -d sql:$FIREFOX_DEFAULT -A -n "KasmVNC CA" -t "CT,C,C" -i /etc/kasmvnc/ssl/ca.crt
+
+echo "CA certificate installed for Chrome and Firefox"
+
 # Create VNC config directory (volume mount may overwrite it)
 mkdir -p ~/.vnc
 
@@ -77,27 +123,14 @@ cat ~/.vnc/de
 export SELECT_DE=1
 export KASM_VNC_DE=xfce
 
-# Start KasmVNC - use HTTP by default (no SSL certificate errors)
-# Set VNC_SSL=1 environment variable to enable HTTPS
-echo "Starting KasmVNC..."
-if [ "${VNC_SSL:-0}" = "1" ]; then
-    echo "SSL Mode: HTTPS enabled"
-    echo "1" | kasmvncserver :1 \
-        -websocketPort 6901 \
-        -cert /etc/kasmvnc/ssl/kasmvnc.crt \
-        -key /etc/kasmvnc/ssl/kasmvnc.key \
-        -geometry 1920x1080 \
-        -depth 24 2>&1 || echo "KasmVNC startup completed"
-    PROTOCOL="https"
-else
-    echo "SSL Mode: HTTP (no certificate errors)"
-    echo "1" | kasmvncserver :1 \
-        -websocketPort 6901 \
-        -sslOnly 0 \
-        -geometry 1920x1080 \
-        -depth 24 2>&1 || echo "KasmVNC startup completed"
-    PROTOCOL="http"
-fi
+# Start KasmVNC with HTTPS
+echo "Starting KasmVNC with HTTPS..."
+echo "1" | kasmvncserver :1 \
+    -websocketPort 6901 \
+    -cert /etc/kasmvnc/ssl/kasmvnc.crt \
+    -key /etc/kasmvnc/ssl/kasmvnc.key \
+    -geometry 1920x1080 \
+    -depth 24 2>&1 || echo "KasmVNC startup completed"
 
 sleep 2
 
@@ -105,12 +138,12 @@ echo "========================================"
 echo "Ready!"
 echo "========================================"
 echo "SSH:     ssh ubuntu@<host> -p 10022"
-echo "Web:     ${PROTOCOL}://<host>:16901"
+echo "Web:     https://<host>:16901"
 echo "User:    ubuntu"
 echo "Password: ${PASSWORD:-ubuntu}"
 echo "========================================"
 echo ""
-echo "To enable HTTPS, set VNC_SSL=1 in docker-compose.yml"
+echo "Note: CA certificate is pre-installed in Chrome and Firefox"
 echo "========================================"
 
 # Keep container running
