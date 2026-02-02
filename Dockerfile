@@ -62,9 +62,10 @@ RUN wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd6
     rm -rf /var/lib/apt/lists/*
 
 # ============================================
-# 6. User setup
+# 6. User setup (remove if exists, then create)
 # ============================================
-RUN useradd -m -s /bin/bash -u 1000 ${USER} && \
+RUN userdel -r ${USER} 2>/dev/null || true && \
+    useradd -m -s /bin/bash -u 1000 ${USER} && \
     echo "${USER}:${PASSWORD}" | chpasswd && \
     usermod -aG sudo ${USER}
 
