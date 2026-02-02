@@ -1,6 +1,8 @@
 # ============================================
 # Ubuntu Desktop Development Environment
-# Chrome + Firefox + KasmVNC with HTTPS
+# Chrome + Firefox + KasmVNC
+# Default: HTTP (no certificate errors)
+# Optional: Set VNC_SSL=1 for HTTPS
 # ============================================
 
 FROM ubuntu:24.04

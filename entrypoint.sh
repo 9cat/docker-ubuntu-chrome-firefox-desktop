@@ -77,14 +77,27 @@ cat ~/.vnc/de
 export SELECT_DE=1
 export KASM_VNC_DE=xfce
 
-# Start KasmVNC - pipe "1" to select XFCE if prompted
+# Start KasmVNC - use HTTP by default (no SSL certificate errors)
+# Set VNC_SSL=1 environment variable to enable HTTPS
 echo "Starting KasmVNC..."
-echo "1" | kasmvncserver :1 \
-    -websocketPort 6901 \
-    -cert /etc/kasmvnc/ssl/kasmvnc.crt \
-    -key /etc/kasmvnc/ssl/kasmvnc.key \
-    -geometry 1920x1080 \
-    -depth 24 2>&1 || echo "KasmVNC startup completed"
+if [ "${VNC_SSL:-0}" = "1" ]; then
+    echo "SSL Mode: HTTPS enabled"
+    echo "1" | kasmvncserver :1 \
+        -websocketPort 6901 \
+        -cert /etc/kasmvnc/ssl/kasmvnc.crt \
+        -key /etc/kasmvnc/ssl/kasmvnc.key \
+        -geometry 1920x1080 \
+        -depth 24 2>&1 || echo "KasmVNC startup completed"
+    PROTOCOL="https"
+else
+    echo "SSL Mode: HTTP (no certificate errors)"
+    echo "1" | kasmvncserver :1 \
+        -websocketPort 6901 \
+        -sslOnly 0 \
+        -geometry 1920x1080 \
+        -depth 24 2>&1 || echo "KasmVNC startup completed"
+    PROTOCOL="http"
+fi
 
 sleep 2
 
@@ -92,9 +105,12 @@ echo "========================================"
 echo "Ready!"
 echo "========================================"
 echo "SSH:     ssh ubuntu@<host> -p 10022"
-echo "Web:     https://<host>:16901"
+echo "Web:     ${PROTOCOL}://<host>:16901"
 echo "User:    ubuntu"
 echo "Password: ${PASSWORD:-ubuntu}"
+echo "========================================"
+echo ""
+echo "To enable HTTPS, set VNC_SSL=1 in docker-compose.yml"
 echo "========================================"
 
 # Keep container running
