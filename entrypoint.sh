@@ -31,14 +31,20 @@ touch ~/.Xauthority
 # Set VNC password for current user
 echo -e "${VNC_PASSWORD:-ubuntu}\n${VNC_PASSWORD:-ubuntu}" | vncpasswd -u $(whoami) -w 2>/dev/null || true
 
-# Start KasmVNC
+# Debug: verify de file exists
+echo "VNC config files:"
+ls -la ~/.vnc/
+cat ~/.vnc/de
+
+# Start KasmVNC with -select-de to bypass interactive prompt
 echo "Starting KasmVNC..."
 kasmvncserver :1 \
     -websocketPort 6901 \
     -cert /etc/kasmvnc/ssl/kasmvnc.crt \
     -key /etc/kasmvnc/ssl/kasmvnc.key \
     -geometry 1920x1080 \
-    -depth 24 2>&1 || echo "KasmVNC startup completed"
+    -depth 24 \
+    -select-de xfce 2>&1 || echo "KasmVNC startup completed"
 
 sleep 2
 
