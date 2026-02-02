@@ -28,6 +28,32 @@ chmod +x ~/.vnc/xstartup
 # Create Xauthority if missing
 touch ~/.Xauthority
 
+# Create Desktop directory and browser shortcuts (volume mount overwrites these)
+mkdir -p ~/Desktop
+cat > ~/Desktop/chrome.desktop << 'CHROME'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Google Chrome
+Exec=/usr/local/bin/chrome %U
+Icon=google-chrome
+Terminal=false
+Categories=Network;WebBrowser;
+CHROME
+chmod +x ~/Desktop/chrome.desktop
+
+cat > ~/Desktop/firefox.desktop << 'FIREFOX'
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Firefox
+Exec=firefox %U
+Icon=firefox
+Terminal=false
+Categories=Network;WebBrowser;
+FIREFOX
+chmod +x ~/Desktop/firefox.desktop
+
 # Set VNC password for current user
 echo -e "${VNC_PASSWORD:-ubuntu}\n${VNC_PASSWORD:-ubuntu}" | vncpasswd -u $(whoami) -w 2>/dev/null || true
 

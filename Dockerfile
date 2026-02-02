@@ -65,7 +65,38 @@ RUN userdel -r ubuntu 2>/dev/null || true && \
     echo "ubuntu ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 # ============================================
-# 6. Configure KasmVNC for ubuntu user
+# 6. Create Chrome wrapper script (needs --no-sandbox in Docker)
+# ============================================
+RUN echo '#!/bin/bash' > /usr/local/bin/chrome && \
+    echo 'exec /usr/bin/google-chrome --no-sandbox --disable-dev-shm-usage "$@"' >> /usr/local/bin/chrome && \
+    chmod +x /usr/local/bin/chrome
+
+# ============================================
+# 7. Create desktop shortcuts for browsers
+# ============================================
+RUN mkdir -p /home/ubuntu/Desktop && \
+    echo '[Desktop Entry]' > /home/ubuntu/Desktop/chrome.desktop && \
+    echo 'Version=1.0' >> /home/ubuntu/Desktop/chrome.desktop && \
+    echo 'Type=Application' >> /home/ubuntu/Desktop/chrome.desktop && \
+    echo 'Name=Google Chrome' >> /home/ubuntu/Desktop/chrome.desktop && \
+    echo 'Exec=/usr/local/bin/chrome %U' >> /home/ubuntu/Desktop/chrome.desktop && \
+    echo 'Icon=google-chrome' >> /home/ubuntu/Desktop/chrome.desktop && \
+    echo 'Terminal=false' >> /home/ubuntu/Desktop/chrome.desktop && \
+    echo 'Categories=Network;WebBrowser;' >> /home/ubuntu/Desktop/chrome.desktop && \
+    chmod +x /home/ubuntu/Desktop/chrome.desktop && \
+    echo '[Desktop Entry]' > /home/ubuntu/Desktop/firefox.desktop && \
+    echo 'Version=1.0' >> /home/ubuntu/Desktop/firefox.desktop && \
+    echo 'Type=Application' >> /home/ubuntu/Desktop/firefox.desktop && \
+    echo 'Name=Firefox' >> /home/ubuntu/Desktop/firefox.desktop && \
+    echo 'Exec=firefox %U' >> /home/ubuntu/Desktop/firefox.desktop && \
+    echo 'Icon=firefox' >> /home/ubuntu/Desktop/firefox.desktop && \
+    echo 'Terminal=false' >> /home/ubuntu/Desktop/firefox.desktop && \
+    echo 'Categories=Network;WebBrowser;' >> /home/ubuntu/Desktop/firefox.desktop && \
+    chmod +x /home/ubuntu/Desktop/firefox.desktop && \
+    chown -R ubuntu:ubuntu /home/ubuntu/Desktop
+
+# ============================================
+# 8. Configure KasmVNC for ubuntu user
 # ============================================
 RUN mkdir -p /home/ubuntu/.vnc && \
     echo "xfce" > /home/ubuntu/.vnc/de && \
@@ -79,7 +110,7 @@ RUN mkdir -p /home/ubuntu/.vnc && \
     chown -R ubuntu:ubuntu /home/ubuntu
 
 # ============================================
-# 7. Configure KasmVNC for root (fallback)
+# 9. Configure KasmVNC for root (fallback)
 # ============================================
 RUN mkdir -p /root/.vnc && \
     echo "xfce" > /root/.vnc/de && \
@@ -92,7 +123,7 @@ RUN mkdir -p /root/.vnc && \
     touch /root/.Xauthority
 
 # ============================================
-# 8. Generate self-signed SSL certificate for HTTPS
+# 10. Generate self-signed SSL certificate for HTTPS
 # ============================================
 RUN mkdir -p /etc/kasmvnc/ssl && \
     openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
@@ -103,13 +134,13 @@ RUN mkdir -p /etc/kasmvnc/ssl && \
     chmod 644 /etc/kasmvnc/ssl/kasmvnc.crt
 
 # ============================================
-# 9. SSH config - allow password auth
+# 11. SSH config - allow password auth
 # ============================================
 RUN sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config && \
     sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
 
 # ============================================
-# 10. Entrypoint
+# 12. Entrypoint
 # ============================================
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
