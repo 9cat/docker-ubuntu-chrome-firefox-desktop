@@ -64,20 +64,35 @@ RUN userdel -r ${USER} 2>/dev/null || true && \
     usermod -aG ssl-cert ${USER}
 
 # ============================================
-# 6. Modify KasmVNC select-de.sh to auto-select XFCE
+# 6. Create /defaults/startwm.sh to bypass desktop selection
+#    This is the KasmVNC way to specify desktop environment
 # ============================================
-RUN sed -i 's/choice = read_choice/choice = "1"/' /usr/lib/kasmvncserver/select-de.sh && \
-    chmod +x /usr/lib/kasmvncserver/select-de.sh
+RUN mkdir -p /defaults && \
+    cat > /defaults/startwm.sh << 'EOFSCRIPT'
+#!/bin/bash
+# KasmVNC window manager startup script
+# This script is launched by KasmVNC to start the desktop environment
+
+# Clean environment
+unset SESSION_MANAGER
+unset DBUS_SESSION_BUS_ADDRESS
+
+# Start XFCE4
+exec startxfce4
+EOFSCRIPT
+    chmod +x /defaults/startwm.sh
 
 # ============================================
-# 7. Pre-configure VNC directory and startup
+# 7. Pre-configure VNC directory
 # ============================================
 RUN mkdir -p /home/${USER}/.vnc && \
     chown -R ${USER}:${USER} /home/${USER}/.vnc && \
-    echo '#!/bin/bash' > /home/${USER}/.vnc/xstartup && \
-    echo 'unset SESSION_MANAGER' >> /home/${USER}/.vnc/xstartup && \
-    echo 'unset DBUS_SESSION_BUS_ADDRESS' >> /home/${USER}/.vnc/xstartup && \
-    echo 'exec startxfce4' >> /home/${USER}/.vnc/xstartup && \
+    cat > /home/${USER}/.vnc/xstartup << 'EOFSCRIPT'
+#!/bin/bash
+unset SESSION_MANAGER
+unset DBUS_SESSION_BUS_ADDRESS
+exec startxfce4
+EOFSCRIPT
     chmod +x /home/${USER}/.vnc/xstartup && \
     chown ${USER}:${USER} /home/${USER}/.vnc/xstartup
 
