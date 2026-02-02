@@ -9,6 +9,25 @@ echo "========================================"
 sudo mkdir -p /var/run/sshd
 sudo /usr/sbin/sshd
 
+# Create VNC config directory (volume mount may overwrite it)
+mkdir -p ~/.vnc
+
+# Create 'de' file to auto-select XFCE (MUST be done at runtime due to volume mount)
+echo "xfce" > ~/.vnc/de
+
+# Create xstartup file
+cat > ~/.vnc/xstartup << 'EOF'
+#!/bin/bash
+unset SESSION_MANAGER
+unset DBUS_SESSION_BUS_ADDRESS
+export XDG_SESSION_TYPE=x11
+exec startxfce4
+EOF
+chmod +x ~/.vnc/xstartup
+
+# Create Xauthority if missing
+touch ~/.Xauthority
+
 # Set VNC password for current user
 echo -e "${VNC_PASSWORD:-ubuntu}\n${VNC_PASSWORD:-ubuntu}" | vncpasswd -u $(whoami) -w 2>/dev/null || true
 
