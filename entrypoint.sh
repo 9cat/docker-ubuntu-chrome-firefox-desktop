@@ -134,6 +134,21 @@ echo "1" | kasmvncserver :1 \
 
 sleep 2
 
+# ============================================
+# Start tmux session for Claude Code development
+# ============================================
+echo "Starting tmux session 'dev'..."
+tmux new-session -d -s dev -n claude
+tmux send-keys -t dev:claude "cd ~" C-m
+tmux send-keys -t dev:claude "echo 'Claude Code ready! Run: claude'" C-m
+
+# Create a second window for general shell
+tmux new-window -t dev -n shell
+tmux send-keys -t dev:shell "cd ~" C-m
+
+# Switch back to first window
+tmux select-window -t dev:claude
+
 echo "========================================"
 echo "Ready!"
 echo "========================================"
@@ -143,7 +158,17 @@ echo "User:    ubuntu"
 echo "Password: ${PASSWORD:-ubuntu}"
 echo "========================================"
 echo ""
-echo "Note: CA certificate is pre-installed in Chrome and Firefox"
+echo "Claude Code: Attach to tmux session"
+echo "  tmux attach -t dev"
+echo ""
+echo "tmux windows:"
+echo "  0:claude  - For Claude Code development"
+echo "  1:shell   - General shell"
+echo ""
+echo "tmux shortcuts:"
+echo "  Ctrl+b d  - Detach from session"
+echo "  Ctrl+b n  - Next window"
+echo "  Ctrl+b p  - Previous window"
 echo "========================================"
 
 # Keep container running

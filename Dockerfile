@@ -1,6 +1,6 @@
 # ============================================
 # Ubuntu Desktop Development Environment
-# Chrome + Firefox + KasmVNC
+# Chrome + Firefox + KasmVNC + Claude Code
 # HTTPS enabled with auto-trusted certificates
 # Docker-in-Docker support enabled
 # ============================================
@@ -17,15 +17,22 @@ ENV DEBIAN_FRONTEND=noninteractive \
     VNC_PASSWORD=ubuntu
 
 # ============================================
-# 1. Base packages + SSL tools + tmux for debugging
+# 1. Base packages + SSL tools + tmux + git
 # ============================================
 RUN apt-get update && \
     apt-get upgrade -y && \
     apt-get install -y --no-install-recommends \
         ca-certificates curl wget gnupg sudo locales tzdata \
         openssh-server software-properties-common ssl-cert openssl \
-        tmux htop vim libnss3-tools && \
+        tmux htop vim libnss3-tools git ripgrep && \
     locale-gen en_US.UTF-8 && \
+    rm -rf /var/lib/apt/lists/*
+
+# ============================================
+# 1b. Node.js 22 LTS (required for Claude Code)
+# ============================================
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
+    apt-get install -y nodejs && \
     rm -rf /var/lib/apt/lists/*
 
 # ============================================
@@ -191,7 +198,12 @@ RUN sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/
     sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
 
 # ============================================
-# 13. Entrypoint
+# 13. Install Claude Code globally
+# ============================================
+RUN npm install -g @anthropic-ai/claude-code
+
+# ============================================
+# 14. Entrypoint
 # ============================================
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
