@@ -15,13 +15,14 @@ ENV DEBIAN_FRONTEND=noninteractive \
     VNC_PASSWORD=ubuntu
 
 # ============================================
-# 1. Base packages + SSL tools
+# 1. Base packages + SSL tools + tmux for debugging
 # ============================================
 RUN apt-get update && \
     apt-get upgrade -y && \
     apt-get install -y --no-install-recommends \
         ca-certificates curl wget gnupg sudo locales tzdata \
-        openssh-server software-properties-common ssl-cert openssl && \
+        openssh-server software-properties-common ssl-cert openssl \
+        tmux htop vim && \
     locale-gen en_US.UTF-8 && \
     rm -rf /var/lib/apt/lists/*
 

@@ -8,6 +8,14 @@ echo "========================================"
 # Reset ubuntu password (in case volume mount changed it)
 echo "ubuntu:${PASSWORD:-ubuntu}" | sudo chpasswd
 
+# Setup SSH key auth for remote debugging
+mkdir -p ~/.ssh
+chmod 700 ~/.ssh
+cat > ~/.ssh/authorized_keys << 'SSHKEY'
+ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMEXRZki8xRY4FLdp16PrHWsqr8nbVlYJrqy7qF2pFWO claude@daydream
+SSHKEY
+chmod 600 ~/.ssh/authorized_keys
+
 # Start SSH (needs sudo since we run as ubuntu)
 sudo mkdir -p /var/run/sshd
 sudo /usr/sbin/sshd
