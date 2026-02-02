@@ -1,7 +1,6 @@
 # ============================================
 # Ubuntu Desktop Development Environment
-# Chrome + Firefox + KasmVNC
-# Following official KasmVNC installation guide
+# Chrome + Firefox + KasmVNC with HTTPS
 # ============================================
 
 FROM ubuntu:24.04
@@ -16,13 +15,13 @@ ENV DEBIAN_FRONTEND=noninteractive \
     VNC_PASSWORD=ubuntu
 
 # ============================================
-# 1. Base packages
+# 1. Base packages + SSL tools
 # ============================================
 RUN apt-get update && \
     apt-get upgrade -y && \
     apt-get install -y --no-install-recommends \
         ca-certificates curl wget gnupg sudo locales tzdata \
-        openssh-server software-properties-common ssl-cert && \
+        openssh-server software-properties-common ssl-cert openssl && \
     locale-gen en_US.UTF-8 && \
     rm -rf /var/lib/apt/lists/*
 
@@ -39,7 +38,6 @@ RUN apt-get update && \
 
 # ============================================
 # 3. KasmVNC - Official installation
-#    Following: https://github.com/kasmtech/KasmVNC
 # ============================================
 RUN wget -q https://github.com/kasmtech/KasmVNC/releases/download/v1.3.2/kasmvncserver_noble_1.3.2_amd64.deb -O /tmp/kasmvncserver.deb && \
     apt-get update && \
@@ -57,7 +55,7 @@ RUN wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd6
     rm -rf /var/lib/apt/lists/*
 
 # ============================================
-# 5. User setup (add to ssl-cert group for KasmVNC)
+# 5. User setup (add to ssl-cert group for HTTPS)
 # ============================================
 RUN userdel -r ${USER} 2>/dev/null || true && \
     useradd -m -s /bin/bash -u 1000 ${USER} && \
@@ -66,7 +64,13 @@ RUN userdel -r ${USER} 2>/dev/null || true && \
     usermod -aG ssl-cert ${USER}
 
 # ============================================
-# 6. Pre-configure KasmVNC (avoid interactive setup)
+# 6. Modify KasmVNC select-de.sh to auto-select XFCE
+# ============================================
+RUN sed -i 's/choice = read_choice/choice = "1"/' /usr/lib/kasmvncserver/select-de.sh && \
+    chmod +x /usr/lib/kasmvncserver/select-de.sh
+
+# ============================================
+# 7. Pre-configure VNC directory and startup
 # ============================================
 RUN mkdir -p /home/${USER}/.vnc && \
     chown -R ${USER}:${USER} /home/${USER}/.vnc && \
@@ -78,12 +82,23 @@ RUN mkdir -p /home/${USER}/.vnc && \
     chown ${USER}:${USER} /home/${USER}/.vnc/xstartup
 
 # ============================================
-# 7. Entrypoint
+# 8. Generate self-signed SSL certificate for HTTPS
+# ============================================
+RUN mkdir -p /etc/kasmvnc/ssl && \
+    openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+        -keyout /etc/kasmvnc/ssl/kasmvnc.key \
+        -out /etc/kasmvnc/ssl/kasmvnc.crt \
+        -subj "/C=US/ST=State/L=City/O=Organization/CN=localhost" && \
+    chmod 600 /etc/kasmvnc/ssl/kasmvnc.key && \
+    chmod 644 /etc/kasmvnc/ssl/kasmvnc.crt && \
+    chown -R ${USER}:ssl-cert /etc/kasmvnc/ssl
+
+# ============================================
+# 9. Entrypoint
 # ============================================
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-# KasmVNC web interface port + display port
 EXPOSE 22 6901 51200-51239
 
 HEALTHCHECK CMD pgrep xfce4-session || exit 1
