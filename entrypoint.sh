@@ -5,6 +5,9 @@ echo "========================================"
 echo "Ubuntu Desktop - Starting"
 echo "========================================"
 
+# Reset ubuntu password (in case volume mount changed it)
+echo "ubuntu:${PASSWORD:-ubuntu}" | sudo chpasswd
+
 # Start SSH (needs sudo since we run as ubuntu)
 sudo mkdir -p /var/run/sshd
 sudo /usr/sbin/sshd
