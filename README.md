@@ -10,6 +10,7 @@ Minimal Ubuntu Desktop environment with Chrome + Firefox + KasmVNC for remote br
 - **XFCE4** lightweight desktop environment
 - **KasmVNC** web-based remote desktop (HTTPS)
 - **Chrome** + **Firefox ESR** browsers pre-installed
+- **Docker-in-Docker** - create and manage containers from within
 - **Auto-trusted SSL certificates** - no browser warnings
 - **SSH access** for terminal operations
 - **Persistent storage** via Docker volumes
@@ -131,6 +132,60 @@ Both browsers are accessible from the desktop:
 - **Firefox**: Click the Firefox icon or run `firefox-esr`
 
 Chrome runs with `--no-sandbox` flag (required for Docker).
+
+## Docker-in-Docker
+
+This container supports running Docker commands and creating containers from within. Docker CLI and Docker Compose are pre-installed.
+
+### Default Mode: Socket Mounting
+
+By default, the container mounts the host's Docker socket (`/var/run/docker.sock`). This allows you to:
+
+```bash
+# Inside the container
+docker ps                    # List host's containers
+docker run hello-world       # Run a container (on host)
+docker compose up -d         # Use docker compose
+```
+
+> **Note**: Containers created this way run on the host, not inside this container.
+
+### Isolated Mode: True DinD
+
+For complete isolation (separate Docker daemon), enable privileged mode in `docker-compose.yml`:
+
+```yaml
+services:
+  desktop:
+    privileged: true
+    # Remove or comment out the socket mount:
+    # - /var/run/docker.sock:/var/run/docker.sock
+```
+
+Then start dockerd manually inside the container:
+
+```bash
+sudo dockerd &
+docker ps    # Now using isolated Docker daemon
+```
+
+### Docker Usage Examples
+
+```bash
+# Pull and run an image
+docker pull nginx
+docker run -d -p 8080:80 nginx
+
+# Build from Dockerfile
+docker build -t myapp .
+
+# Docker Compose
+docker compose up -d
+
+# Check Docker version
+docker --version
+docker compose version
+```
 
 ## Security Notes
 

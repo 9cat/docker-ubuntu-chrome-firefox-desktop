@@ -2,6 +2,7 @@
 # Ubuntu Desktop Development Environment
 # Chrome + Firefox + KasmVNC
 # HTTPS enabled with auto-trusted certificates
+# Docker-in-Docker support enabled
 # ============================================
 
 FROM ubuntu:24.04
@@ -28,7 +29,19 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # ============================================
-# 2. xfce4 desktop
+# 2. Docker CLI + Docker Compose (for Docker-in-Docker)
+# ============================================
+RUN install -m 0755 -d /etc/apt/keyrings && \
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc && \
+    chmod a+r /etc/apt/keyrings/docker.asc && \
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" > /etc/apt/sources.list.d/docker.list && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+        docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin && \
+    rm -rf /var/lib/apt/lists/*
+
+# ============================================
+# 3. XFCE4 desktop
 # ============================================
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
@@ -70,13 +83,14 @@ RUN wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd6
     rm -rf /var/lib/apt/lists/*
 
 # ============================================
-# 6. User setup (add to ssl-cert group for HTTPS)
+# 7. User setup (add to ssl-cert and docker groups)
 # ============================================
 RUN userdel -r ubuntu 2>/dev/null || true && \
     useradd -m -s /bin/bash -u 1000 ubuntu && \
     echo "ubuntu:ubuntu" | chpasswd && \
     usermod -aG sudo ubuntu && \
     usermod -aG ssl-cert ubuntu && \
+    usermod -aG docker ubuntu && \
     echo "ubuntu ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 # ============================================

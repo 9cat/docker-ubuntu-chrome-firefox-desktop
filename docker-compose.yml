@@ -1,6 +1,7 @@
 # Ubuntu Desktop Development Environment
 # Access: https://localhost:16901 (VNC) | ssh ubuntu@localhost -p 10022
 # Default credentials: ubuntu / ubuntu
+# Docker-in-Docker: Enabled via socket mounting
 
 services:
   desktop:
@@ -19,10 +20,14 @@ services:
       - TZ=${TZ:-Asia/Shanghai}
     volumes:
       - desktop-data:/home/ubuntu
+      # Docker-in-Docker: Mount host Docker socket
+      - /var/run/docker.sock:/var/run/docker.sock
     cap_add:
       - SYS_PTRACE              # Required for debugging tools
-    # Uncomment for shared memory (improves Chrome performance)
-    # shm_size: 2gb
+    # For true Docker-in-Docker (isolated daemon), uncomment:
+    # privileged: true
+    # Shared memory for Chrome performance
+    shm_size: 2gb
 
 volumes:
   desktop-data:
