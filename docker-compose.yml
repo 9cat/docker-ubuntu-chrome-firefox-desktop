@@ -6,17 +6,17 @@ services:
     restart: unless-stopped
     ports:
       - "10022:22"
-      - "16901:6901"
+      - "13000:3000"
       - "51200-51239:51200-51239"
     environment:
       - USER=${USER:-ubuntu}
       - PASSWORD=${PASSWORD:-ubuntu}
-      - VNC_PASSWORD=${VNC_PASSWORD:-ubuntu}
       - TZ=${TZ:-Asia/Shanghai}
     volumes:
-      - desktop-data:/home/ubuntu
+      - desktop-data:/config
     cap_add:
       - SYS_PTRACE
+    privileged: false
 
 volumes:
   desktop-data:

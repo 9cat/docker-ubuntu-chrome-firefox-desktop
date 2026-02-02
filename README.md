@@ -5,20 +5,20 @@
 ## 快速开始
 
 ```bash
-git clone <your-repo-url>
-cd <repo-dir>
+git clone https://github.com/9cat/docker-ubuntu-chrome-firefox-desktop.git
+cd docker-ubuntu-chrome-firefox-desktop
 ./start.sh
 ```
 
 ## 访问
 
-- **Web**: https://localhost:16901
-- **SSH**: ssh ubuntu@localhost -p 10022
+- **Web**: http://localhost:13000
+- **用户**: abc (LinuxServer 默认用户)
 - **密码**: ubuntu
 
 ## 组件
 
-- Ubuntu 24.04
+- Ubuntu 24.04 (Noble)
 - xfce4 桌面
 - KasmVNC (Web 访问)
 - Chrome 浏览器
@@ -28,11 +28,15 @@ cd <repo-dir>
 
 ```bash
 ./start.sh      # 启动
-docker-compose down    # 停止
-docker-compose logs -f # 查看日志
-docker exec -it ubuntu-desktop bash  # 进入容器
+docker compose down    # 停止
+docker compose logs -f # 查看日志
 ```
 
 ## 作者
 
 temple <temple@iobond.com>
+
+## Sources
+
+- [LinuxServer KasmVNC Base Images](https://github.com/linuxserver/docker-baseimage-kasmvnc)
+- [KasmVNC](https://github.com/kasmtech/KasmVNC)
