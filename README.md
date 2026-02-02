@@ -17,35 +17,50 @@ Minimal Ubuntu Desktop environment with Chrome + Firefox + KasmVNC for remote br
 
 ## Quick Start
 
-### Option 1: Build from source
+### Option 1: Use pre-built image from Docker Hub (Recommended)
+
+The fastest way - no build required, all dependencies pre-installed:
 
 ```bash
-git clone https://github.com/9cat/docker-ubuntu-chrome-firefox-desktop.git
-cd docker-ubuntu-chrome-firefox-desktop
-docker compose up -d --build
-```
-
-### Option 2: Use pre-built image
-
-```yaml
-# docker-compose.yml
+# Create docker-compose.yml
+cat > docker-compose.yml << 'EOF'
 services:
   desktop:
-    image: ghcr.io/9cat/docker-ubuntu-chrome-firefox-desktop:latest
+    image: canadianbitcoin/dev-desktop:latest
     container_name: ubuntu-desktop
     restart: unless-stopped
     ports:
-      - "10022:22"     # SSH
-      - "16901:6901"   # KasmVNC Web
+      - "10022:22"
+      - "16901:6901"
     environment:
       - PASSWORD=ubuntu
       - VNC_PASSWORD=ubuntu
       - TZ=Asia/Shanghai
     volumes:
       - desktop-data:/home/ubuntu
+      - /var/run/docker.sock:/var/run/docker.sock
+    shm_size: 2gb
 
 volumes:
   desktop-data:
+EOF
+
+# Start the container
+docker compose up -d
+```
+
+**Available tags:**
+- `canadianbitcoin/dev-desktop:latest` - Latest stable release
+- `canadianbitcoin/dev-desktop:0.6` - Version 0.6
+
+### Option 2: Build from source
+
+If you need to customize the image or prefer building locally:
+
+```bash
+git clone https://github.com/9cat/docker-ubuntu-chrome-firefox-desktop.git
+cd docker-ubuntu-chrome-firefox-desktop
+docker compose up -d --build
 ```
 
 ## Access
