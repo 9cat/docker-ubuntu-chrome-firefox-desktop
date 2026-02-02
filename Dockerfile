@@ -57,35 +57,39 @@ RUN wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd6
 # ============================================
 # 5. User setup (add to ssl-cert group for HTTPS)
 # ============================================
-RUN userdel -r ${USER} 2>/dev/null || true && \
-    useradd -m -s /bin/bash -u 1000 ${USER} && \
-    echo "${USER}:${PASSWORD}" | chpasswd && \
-    usermod -aG sudo ${USER} && \
-    usermod -aG ssl-cert ${USER}
+RUN userdel -r ubuntu 2>/dev/null || true && \
+    useradd -m -s /bin/bash -u 1000 ubuntu && \
+    echo "ubuntu:ubuntu" | chpasswd && \
+    usermod -aG sudo ubuntu && \
+    usermod -aG ssl-cert ubuntu && \
+    echo "ubuntu ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 # ============================================
-# 6. Create /defaults/startwm.sh to bypass desktop selection
+# 6. Configure KasmVNC for ubuntu user
 # ============================================
-RUN mkdir -p /defaults && \
-    echo '#!/bin/bash' > /defaults/startwm.sh && \
-    echo '' >> /defaults/startwm.sh && \
-    echo '# KasmVNC window manager startup script' >> /defaults/startwm.sh && \
-    echo 'unset SESSION_MANAGER' >> /defaults/startwm.sh && \
-    echo 'unset DBUS_SESSION_BUS_ADDRESS' >> /defaults/startwm.sh && \
-    echo 'exec startxfce4' >> /defaults/startwm.sh && \
-    chmod +x /defaults/startwm.sh
+RUN mkdir -p /home/ubuntu/.vnc && \
+    echo "xfce" > /home/ubuntu/.vnc/de && \
+    echo '#!/bin/bash' > /home/ubuntu/.vnc/xstartup && \
+    echo 'unset SESSION_MANAGER' >> /home/ubuntu/.vnc/xstartup && \
+    echo 'unset DBUS_SESSION_BUS_ADDRESS' >> /home/ubuntu/.vnc/xstartup && \
+    echo 'export XDG_SESSION_TYPE=x11' >> /home/ubuntu/.vnc/xstartup && \
+    echo 'exec startxfce4' >> /home/ubuntu/.vnc/xstartup && \
+    chmod +x /home/ubuntu/.vnc/xstartup && \
+    touch /home/ubuntu/.Xauthority && \
+    chown -R ubuntu:ubuntu /home/ubuntu
 
 # ============================================
-# 7. Pre-configure VNC directory
+# 7. Configure KasmVNC for root (fallback)
 # ============================================
-RUN mkdir -p /home/${USER}/.vnc && \
-    chown -R ${USER}:${USER} /home/${USER}/.vnc && \
-    echo '#!/bin/bash' > /home/${USER}/.vnc/xstartup && \
-    echo 'unset SESSION_MANAGER' >> /home/${USER}/.vnc/xstartup && \
-    echo 'unset DBUS_SESSION_BUS_ADDRESS' >> /home/${USER}/.vnc/xstartup && \
-    echo 'exec startxfce4' >> /home/${USER}/.vnc/xstartup && \
-    chmod +x /home/${USER}/.vnc/xstartup && \
-    chown ${USER}:${USER} /home/${USER}/.vnc/xstartup
+RUN mkdir -p /root/.vnc && \
+    echo "xfce" > /root/.vnc/de && \
+    echo '#!/bin/bash' > /root/.vnc/xstartup && \
+    echo 'unset SESSION_MANAGER' >> /root/.vnc/xstartup && \
+    echo 'unset DBUS_SESSION_BUS_ADDRESS' >> /root/.vnc/xstartup && \
+    echo 'export XDG_SESSION_TYPE=x11' >> /root/.vnc/xstartup && \
+    echo 'exec startxfce4' >> /root/.vnc/xstartup && \
+    chmod +x /root/.vnc/xstartup && \
+    touch /root/.Xauthority
 
 # ============================================
 # 8. Generate self-signed SSL certificate for HTTPS
@@ -95,19 +99,28 @@ RUN mkdir -p /etc/kasmvnc/ssl && \
         -keyout /etc/kasmvnc/ssl/kasmvnc.key \
         -out /etc/kasmvnc/ssl/kasmvnc.crt \
         -subj "/C=US/ST=State/L=City/O=Organization/CN=localhost" && \
-    chmod 600 /etc/kasmvnc/ssl/kasmvnc.key && \
-    chmod 644 /etc/kasmvnc/ssl/kasmvnc.crt && \
-    chown -R ${USER}:ssl-cert /etc/kasmvnc/ssl
+    chmod 644 /etc/kasmvnc/ssl/kasmvnc.key && \
+    chmod 644 /etc/kasmvnc/ssl/kasmvnc.crt
 
 # ============================================
-# 9. Entrypoint
+# 9. SSH config - allow password auth
+# ============================================
+RUN sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config && \
+    sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
+
+# ============================================
+# 10. Entrypoint
 # ============================================
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
 EXPOSE 22 6901 51200-51239
 
-HEALTHCHECK CMD pgrep xfce4-session || exit 1
+HEALTHCHECK --interval=10s --timeout=5s --start-period=30s \
+    CMD pgrep -f kasmvncserver || exit 1
+
+USER ubuntu
+WORKDIR /home/ubuntu
 
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["start"]
