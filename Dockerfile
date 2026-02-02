@@ -27,18 +27,31 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # ============================================
-# 2. xfce4 desktop + Firefox
+# 2. xfce4 desktop
 # ============================================
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         xfce4 xfce4-terminal dbus-x11 \
         xserver-xorg x11-xserver-utils \
-        fonts-liberation fonts-dejavu-core \
-        firefox && \
+        fonts-liberation fonts-dejavu-core && \
     rm -rf /var/lib/apt/lists/*
 
 # ============================================
-# 3. KasmVNC - Official installation
+# 3. Firefox ESR from Mozilla PPA (snap doesn't work in Docker)
+# ============================================
+RUN apt-get update && \
+    apt-get install -y software-properties-common && \
+    add-apt-repository -y ppa:mozillateam/ppa && \
+    echo 'Package: *' > /etc/apt/preferences.d/mozilla-firefox && \
+    echo 'Pin: release o=LP-PPA-mozillateam' >> /etc/apt/preferences.d/mozilla-firefox && \
+    echo 'Pin-Priority: 1001' >> /etc/apt/preferences.d/mozilla-firefox && \
+    apt-get update && \
+    apt-get install -y firefox-esr && \
+    ln -sf /usr/bin/firefox-esr /usr/bin/firefox && \
+    rm -rf /var/lib/apt/lists/*
+
+# ============================================
+# 4. KasmVNC - Official installation
 # ============================================
 RUN wget -q https://github.com/kasmtech/KasmVNC/releases/download/v1.3.2/kasmvncserver_noble_1.3.2_amd64.deb -O /tmp/kasmvncserver.deb && \
     apt-get update && \
@@ -47,7 +60,7 @@ RUN wget -q https://github.com/kasmtech/KasmVNC/releases/download/v1.3.2/kasmvnc
     rm -rf /var/lib/apt/lists/*
 
 # ============================================
-# 4. Chrome
+# 5. Chrome
 # ============================================
 RUN wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && \
     apt-get update && \
@@ -56,7 +69,7 @@ RUN wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd6
     rm -rf /var/lib/apt/lists/*
 
 # ============================================
-# 5. User setup (add to ssl-cert group for HTTPS)
+# 6. User setup (add to ssl-cert group for HTTPS)
 # ============================================
 RUN userdel -r ubuntu 2>/dev/null || true && \
     useradd -m -s /bin/bash -u 1000 ubuntu && \
@@ -66,14 +79,18 @@ RUN userdel -r ubuntu 2>/dev/null || true && \
     echo "ubuntu ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 # ============================================
-# 6. Create Chrome wrapper script (needs --no-sandbox in Docker)
+# 7. Create Chrome wrapper script (needs --no-sandbox in Docker)
 # ============================================
 RUN echo '#!/bin/bash' > /usr/local/bin/chrome && \
+    echo '# Clear profile lock if exists' >> /usr/local/bin/chrome && \
+    echo 'rm -f ~/.config/google-chrome/SingletonLock 2>/dev/null' >> /usr/local/bin/chrome && \
+    echo 'rm -f ~/.config/google-chrome/SingletonSocket 2>/dev/null' >> /usr/local/bin/chrome && \
+    echo 'rm -f ~/.config/google-chrome/SingletonCookie 2>/dev/null' >> /usr/local/bin/chrome && \
     echo 'exec /usr/bin/google-chrome --no-sandbox --disable-dev-shm-usage "$@"' >> /usr/local/bin/chrome && \
     chmod +x /usr/local/bin/chrome
 
 # ============================================
-# 7. Create desktop shortcuts for browsers
+# 8. Create desktop shortcuts for browsers
 # ============================================
 RUN mkdir -p /home/ubuntu/Desktop && \
     echo '[Desktop Entry]' > /home/ubuntu/Desktop/chrome.desktop && \
@@ -97,7 +114,7 @@ RUN mkdir -p /home/ubuntu/Desktop && \
     chown -R ubuntu:ubuntu /home/ubuntu/Desktop
 
 # ============================================
-# 8. Configure KasmVNC for ubuntu user
+# 9. Configure KasmVNC for ubuntu user
 # ============================================
 RUN mkdir -p /home/ubuntu/.vnc && \
     echo "xfce" > /home/ubuntu/.vnc/de && \
@@ -111,7 +128,7 @@ RUN mkdir -p /home/ubuntu/.vnc && \
     chown -R ubuntu:ubuntu /home/ubuntu
 
 # ============================================
-# 9. Configure KasmVNC for root (fallback)
+# 10. Configure KasmVNC for root (fallback)
 # ============================================
 RUN mkdir -p /root/.vnc && \
     echo "xfce" > /root/.vnc/de && \
@@ -124,7 +141,7 @@ RUN mkdir -p /root/.vnc && \
     touch /root/.Xauthority
 
 # ============================================
-# 10. Generate self-signed SSL certificate for HTTPS
+# 11. Generate self-signed SSL certificate for HTTPS
 # ============================================
 RUN mkdir -p /etc/kasmvnc/ssl && \
     openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
@@ -135,13 +152,13 @@ RUN mkdir -p /etc/kasmvnc/ssl && \
     chmod 644 /etc/kasmvnc/ssl/kasmvnc.crt
 
 # ============================================
-# 11. SSH config - allow password auth
+# 12. SSH config - allow password auth
 # ============================================
 RUN sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config && \
     sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
 
 # ============================================
-# 12. Entrypoint
+# 13. Entrypoint
 # ============================================
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
