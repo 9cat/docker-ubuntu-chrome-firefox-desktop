@@ -1,0 +1,21 @@
+services:
+  desktop:
+    build: .
+    image: ubuntu-desktop-dev:latest
+    container_name: ubuntu-desktop
+    restart: unless-stopped
+    ports:
+      - "10022:22"
+      - "16901:6901"
+    environment:
+      - USER=${USER:-ubuntu}
+      - PASSWORD=${PASSWORD:-ubuntu}
+      - VNC_PASSWORD=${VNC_PASSWORD:-ubuntu}
+      - TZ=${TZ:-Asia/Shanghai}
+    volumes:
+      - desktop-data:/home/ubuntu
+    cap_add:
+      - SYS_PTRACE
+
+volumes:
+  desktop-data:
