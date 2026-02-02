@@ -10,6 +10,8 @@ Minimal Ubuntu Desktop environment with Chrome + Firefox + KasmVNC for remote br
 - **XFCE4** lightweight desktop environment
 - **KasmVNC** web-based remote desktop (HTTPS)
 - **Chrome** + **Firefox ESR** browsers pre-installed
+- **Claude Code** - Anthropic's AI coding assistant pre-installed
+- **tmux session** - Auto-started dev session for SSH development
 - **Docker-in-Docker** - create and manage containers from within
 - **Auto-trusted SSL certificates** - no browser warnings
 - **SSH access** for terminal operations
@@ -147,6 +149,55 @@ Both browsers are accessible from the desktop:
 - **Firefox**: Click the Firefox icon or run `firefox-esr`
 
 Chrome runs with `--no-sandbox` flag (required for Docker).
+
+## Claude Code Development
+
+[Claude Code](https://github.com/anthropics/claude-code) is Anthropic's official CLI for AI-assisted coding. It comes pre-installed and ready to use.
+
+### Getting Started
+
+1. SSH into the container:
+   ```bash
+   ssh ubuntu@localhost -p 10022
+   ```
+
+2. Attach to the pre-created tmux session:
+   ```bash
+   tmux attach -t dev
+   ```
+
+3. Start Claude Code (requires API key):
+   ```bash
+   export ANTHROPIC_API_KEY=your-api-key
+   claude
+   ```
+
+### tmux Session
+
+A tmux session named `dev` is automatically created on container startup with two windows:
+
+| Window | Name | Purpose |
+|--------|------|---------|
+| 0 | claude | Claude Code development |
+| 1 | shell | General shell tasks |
+
+### tmux Shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl+b d` | Detach from session |
+| `Ctrl+b n` | Next window |
+| `Ctrl+b p` | Previous window |
+| `Ctrl+b c` | Create new window |
+| `Ctrl+b 0-9` | Switch to window by number |
+
+### Persistent API Key
+
+To avoid setting the API key every time, add it to your `.bashrc`:
+
+```bash
+echo 'export ANTHROPIC_API_KEY=your-api-key' >> ~/.bashrc
+```
 
 ## Docker-in-Docker
 
