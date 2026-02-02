@@ -36,9 +36,9 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # ============================================
-# 3. KasmVNC - direct .deb download
+# 3. KasmVNC - Ubuntu 24.04 (noble)
 # ============================================
-RUN wget -q https://github.com/kasmtech/KasmVNC/releases/download/v1.3.1/kasmvncserver_1.3.1_amd64.deb -O /tmp/kasmvnc.deb && \
+RUN wget -q https://github.com/kasmtech/KasmVNC/releases/download/v1.3.2/kasmvncserver_noble_1.3.2_amd64.deb -O /tmp/kasmvnc.deb && \
     apt-get update && \
     apt-get install -y /tmp/kasmvnc.deb && \
     rm -f /tmp/kasmvnc.deb && \
