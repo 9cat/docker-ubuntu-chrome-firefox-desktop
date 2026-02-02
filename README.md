@@ -12,17 +12,17 @@ cd docker-ubuntu-chrome-firefox-desktop
 
 ## 访问
 
-- **Web**: http://localhost:13000
-- **用户**: abc (LinuxServer 默认用户)
+- **Web**: http://localhost:16901
+- **SSH**: ssh ubuntu@localhost -p 10022
+- **用户**: ubuntu
 - **密码**: ubuntu
 
 ## 组件
 
-- Ubuntu 24.04 (Noble)
-- xfce4 桌面
-- KasmVNC (Web 访问)
-- Chrome 浏览器
-- Firefox 浏览器
+- **基础镜像**: Ubuntu 24.04 (官方纯净镜像)
+- **桌面**: xfce4
+- **远程访问**: KasmVNC
+- **浏览器**: Chrome + Firefox
 
 ## 管理命令
 
@@ -35,8 +35,3 @@ docker compose logs -f # 查看日志
 ## 作者
 
 temple <temple@iobond.com>
-
-## Sources
-
-- [LinuxServer KasmVNC Base Images](https://github.com/linuxserver/docker-baseimage-kasmvnc)
-- [KasmVNC](https://github.com/kasmtech/KasmVNC)

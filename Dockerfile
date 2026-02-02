@@ -3,7 +3,7 @@
 # Chrome + Firefox + KasmVNC
 # ============================================
 
-FROM ghcr.io/linuxserver/baseimage-kasmvnc:ubuntunoble
+FROM ubuntu:24.04
 
 LABEL maintainer "temple <temple@iobond.com>"
 LABEL description="Minimal Ubuntu Desktop for Development"
@@ -11,18 +11,43 @@ LABEL description="Minimal Ubuntu Desktop for Development"
 ENV DEBIAN_FRONTEND=noninteractive \
     TZ=Asia/Shanghai \
     USER=ubuntu \
-    PASSWORD=ubuntu
+    PASSWORD=ubuntu \
+    VNC_PASSWORD=ubuntu \
+    DISPLAY=:1
 
 # ============================================
-# Install xfce4 desktop
+# 1. Base packages
 # ============================================
 RUN apt-get update && \
+    apt-get upgrade -y && \
     apt-get install -y --no-install-recommends \
-        xfce4 xfce4-terminal dbus-x11 firefox && \
+        ca-certificates curl wget gnupg sudo locales tzdata \
+        openssh-server software-properties-common && \
+    locale-gen en_US.UTF-8 && \
     rm -rf /var/lib/apt/lists/*
 
 # ============================================
-# Install Chrome
+# 2. xfce4 desktop + Firefox
+# ============================================
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        xfce4 xfce4-terminal dbus-x11 \
+        xserver-xorg x11-xserver-utils \
+        fonts-liberation fonts-dejavu-core \
+        firefox && \
+    rm -rf /var/lib/apt/lists/*
+
+# ============================================
+# 3. KasmVNC - Ubuntu 24.04 noble
+# ============================================
+RUN wget -q https://github.com/kasmtech/KasmVNC/releases/download/v1.3.2/kasmvncserver_noble_1.3.2_amd64.deb -O /tmp/kasmvnc.deb && \
+    apt-get update && \
+    apt-get install -y /tmp/kasmvnc.deb && \
+    rm -f /tmp/kasmvnc.deb && \
+    rm -rf /var/lib/apt/lists/*
+
+# ============================================
+# 4. Chrome
 # ============================================
 RUN wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && \
     apt-get update && \
@@ -31,19 +56,44 @@ RUN wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd6
     rm -rf /var/lib/apt/lists/*
 
 # ============================================
-# Create startwm.sh to launch xfce4
+# 5. User setup
 # ============================================
-RUN echo '#!/bin/bash' > /defaults/startwm.sh && \
-    echo 'unset SESSION_MANAGER' >> /defaults/startwm.sh && \
-    echo 'unset DBUS_SESSION_BUS_ADDRESS' >> /defaults/startwm.sh && \
-    echo 'exec startxfce4' >> /defaults/startwm.sh && \
-    chmod +x /defaults/startwm.sh
-
-# ============================================
-# Create ubuntu user
-# ============================================
-RUN useradd -m -s /bin/bash -u 1000 ${USER} && \
+RUN userdel -r ${USER} 2>/dev/null || true && \
+    useradd -m -s /bin/bash -u 1000 ${USER} && \
     echo "${USER}:${PASSWORD}" | chpasswd && \
     usermod -aG sudo ${USER}
 
-EXPOSE 3000 51200-51239
+# ============================================
+# 6. Pre-configure KasmVNC (bypass interactive setup)
+# ============================================
+RUN mkdir -p /home/${USER}/.vnc && \
+    chown -R ${USER}:${USER} /home/${USER}/.vnc
+
+# Create kasmvnc.yaml config to skip first-run setup
+RUN echo "# KasmVNC config" > /home/${USER}/.vnc/kasmvnc.yaml && \
+    echo "environment:" >> /home/${USER}/.vnc/kasmvnc.yaml && \
+    echo "  scale: 1" >> /home/${USER}/.vnc/kasmvnc.yaml && \
+    echo "desktop:" >> /home/${USER}/.vnc/kasmvnc.yaml && \
+    echo "  xfce:" >> /home/${USER}/.vnc/kasmvnc.yaml && \
+    echo "    show_full: true" >> /home/${USER}/.vnc/kasmvnc.yaml && \
+    chown ${USER}:${USER} /home/${USER}/.vnc/kasmvnc.yaml
+
+# Create xstartup to launch xfce4
+RUN echo '#!/bin/bash' > /home/${USER}/.vnc/xstartup && \
+    echo 'unset SESSION_MANAGER' >> /home/${USER}/.vnc/xstartup && \
+    echo 'unset DBUS_SESSION_BUS_ADDRESS' >> /home/${USER}/.vnc/xstartup && \
+    echo 'exec startxfce4' >> /home/${USER}/.vnc/xstartup && \
+    chmod +x /home/${USER}/.vnc/xstartup && \
+    chown ${USER}:${USER} /home/${USER}/.vnc/xstartup
+
+# ============================================
+# 7. Entrypoint
+# ============================================
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+EXPOSE 22 6901 51200-51239
+HEALTHCHECK CMD pgrep xfce4-session || exit 1
+
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["start"]
