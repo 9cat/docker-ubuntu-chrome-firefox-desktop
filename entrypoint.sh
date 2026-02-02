@@ -13,7 +13,15 @@ mkdir -p /var/run/sshd
 mkdir -p /home/${USER}/.vnc
 chown -R ${USER}:${USER} /home/${USER}/.vnc
 
-# Create KasmVNC xstartup to auto-select XFCE
+# Pre-create KasmVNC config to skip desktop selection
+cat > /home/${USER}/.vnc/kasmvnc.yaml << 'EOF'
+# KasmVNC configuration
+environment:
+  scale: 1
+EOF
+chown ${USER}:${USER} /home/${USER}/.vnc/kasmvnc.yaml
+
+# Create xstartup file
 cat > /home/${USER}/.vnc/xstartup << 'EOF'
 #!/bin/bash
 unset SESSION_MANAGER
@@ -26,8 +34,9 @@ chown ${USER}:${USER} /home/${USER}/.vnc/xstartup
 # Set KasmVNC password
 su - ${USER} -c "echo -e '${VNC_PASSWORD}\n${VNC_PASSWORD}' | vncpasswd -u ${USER} -w"
 
-# Start KasmVNC as ubuntu user
-su - ${USER} -c "vncserver :1 -localhost no -cert none -plainport 6901 -depth 24 -geometry 1920x1080"
+# Start KasmVNC as ubuntu user (use vncserver directly, no display config)
+su - ${USER} -c "kasmvncserver :1 -plainport 6901 -nolisten tcp -geometry 1920x1080 -depth 24" || \
+su - ${USER} -c "vncserver :1 -plainport 6901 -geometry 1920x1080 -depth 24"
 
 echo "========================================"
 echo "Ready!"
