@@ -12,10 +12,12 @@ cd docker-ubuntu-chrome-firefox-desktop
 
 ## 访问
 
-- **Web**: http://localhost:16901
+- **Web**: https://localhost:16901
 - **SSH**: ssh ubuntu@localhost -p 10022
 - **用户**: ubuntu
 - **密码**: ubuntu
+
+> 注意：CA证书会自动安装到Chrome和Firefox的信任存储中，无需手动操作。
 
 ## 组件
 
