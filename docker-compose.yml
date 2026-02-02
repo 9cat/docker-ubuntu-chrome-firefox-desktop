@@ -1,25 +1,25 @@
 # Ubuntu Desktop Development Environment
-# Access: https://localhost:16901 (VNC) | ssh ubuntu@localhost -p 10022
-# Default credentials: ubuntu / ubuntu
+# Access: https://localhost:16901 (VNC) | ssh temple@localhost -p 10022
+# Default credentials: temple / temple
 # Docker-in-Docker: Enabled via socket mounting
 
 services:
   desktop:
     build: .
-    image: ubuntu-desktop-dev:latest
-    container_name: ubuntu-desktop
+    image: temple-desktop-dev:latest
+    container_name: temple-desktop
     restart: unless-stopped
     ports:
       - "10022:22"              # SSH access
       - "16901:6901"            # KasmVNC web interface (HTTPS)
       # - "51200-51239:51200-51239"  # Optional: additional service ports
     environment:
-      - USER=${USER:-ubuntu}
-      - PASSWORD=${PASSWORD:-ubuntu}
-      - VNC_PASSWORD=${VNC_PASSWORD:-ubuntu}
+      - USER=${USER:-temple}
+      - PASSWORD=${PASSWORD:-temple}
+      - VNC_PASSWORD=${VNC_PASSWORD:-temple}
       - TZ=${TZ:-Asia/Shanghai}
     volumes:
-      - desktop-data:/home/ubuntu
+      - desktop-data:/home/temple
       # Docker-in-Docker: Mount host Docker socket
       - /var/run/docker.sock:/var/run/docker.sock
     cap_add:

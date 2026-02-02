@@ -5,8 +5,8 @@ echo "========================================"
 echo "Ubuntu Desktop - Starting"
 echo "========================================"
 
-# Reset ubuntu password (in case volume mount changed it)
-echo "ubuntu:${PASSWORD:-ubuntu}" | sudo chpasswd
+# Reset temple password (in case volume mount changed it)
+echo "temple:${PASSWORD:-temple}" | sudo chpasswd
 
 # Setup SSH key auth for remote debugging
 mkdir -p ~/.ssh
@@ -112,7 +112,7 @@ FIREFOX
 chmod +x ~/Desktop/firefox.desktop
 
 # Set VNC password for current user
-echo -e "${VNC_PASSWORD:-ubuntu}\n${VNC_PASSWORD:-ubuntu}" | vncpasswd -u $(whoami) -w 2>/dev/null || true
+echo -e "${VNC_PASSWORD:-temple}\n${VNC_PASSWORD:-temple}" | vncpasswd -u $(whoami) -w 2>/dev/null || true
 
 # Debug: verify de file exists
 echo "VNC config files:"
@@ -152,10 +152,10 @@ tmux select-window -t dev:claude
 echo "========================================"
 echo "Ready!"
 echo "========================================"
-echo "SSH:     ssh ubuntu@<host> -p 10022"
+echo "SSH:     ssh temple@<host> -p 10022"
 echo "Web:     https://<host>:16901"
-echo "User:    ubuntu"
-echo "Password: ${PASSWORD:-ubuntu}"
+echo "User:    temple"
+echo "Password: ${PASSWORD:-temple}"
 echo "========================================"
 echo ""
 echo "Claude Code: Attach to tmux session"

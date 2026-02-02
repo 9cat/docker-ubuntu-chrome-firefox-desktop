@@ -29,17 +29,17 @@ cat > docker-compose.yml << 'EOF'
 services:
   desktop:
     image: canadianbitcoin/dev-desktop:latest
-    container_name: ubuntu-desktop
+    container_name: temple-desktop
     restart: unless-stopped
     ports:
       - "10022:22"
       - "16901:6901"
     environment:
-      - PASSWORD=ubuntu
-      - VNC_PASSWORD=ubuntu
+      - PASSWORD=temple
+      - VNC_PASSWORD=temple
       - TZ=Asia/Shanghai
     volumes:
-      - desktop-data:/home/ubuntu
+      - desktop-data:/home/temple
       - /var/run/docker.sock:/var/run/docker.sock
     shm_size: 2gb
 
@@ -69,8 +69,8 @@ docker compose up -d --build
 
 | Service | URL | Default Credentials |
 |---------|-----|---------------------|
-| **Web Desktop** | https://localhost:16901 | ubuntu / ubuntu |
-| **SSH** | `ssh ubuntu@localhost -p 10022` | ubuntu / ubuntu |
+| **Web Desktop** | https://localhost:16901 | temple / temple |
+| **SSH** | `ssh temple@localhost -p 10022` | temple / temple |
 
 > **Note**: CA certificate is automatically installed in Chrome and Firefox inside the container. No manual certificate import needed.
 
@@ -96,9 +96,9 @@ ports:
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `USER` | ubuntu | System username |
-| `PASSWORD` | ubuntu | System & SSH password |
-| `VNC_PASSWORD` | ubuntu | VNC login password |
+| `USER` | temple | System username |
+| `PASSWORD` | temple | System & SSH password |
+| `VNC_PASSWORD` | temple | VNC login password |
 | `TZ` | Asia/Shanghai | Timezone |
 
 ### Custom Credentials
@@ -135,7 +135,7 @@ docker compose logs -f
 docker compose up -d --build
 
 # Enter container shell
-docker exec -it ubuntu-desktop bash
+docker exec -it temple-desktop bash
 
 # Reset (delete all data)
 docker compose down -v
@@ -158,7 +158,7 @@ Chrome runs with `--no-sandbox` flag (required for Docker).
 
 1. SSH into the container:
    ```bash
-   ssh ubuntu@localhost -p 10022
+   ssh temple@localhost -p 10022
    ```
 
 2. Attach to the pre-created tmux session:
@@ -274,7 +274,7 @@ docker compose logs -f
 ### Browser won't start
 ```bash
 # SSH into container and check
-docker exec -it ubuntu-desktop bash
+docker exec -it temple-desktop bash
 chrome --version
 firefox-esr --version
 ```

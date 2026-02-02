@@ -12,9 +12,9 @@ LABEL description="Minimal Ubuntu Desktop for Development"
 
 ENV DEBIAN_FRONTEND=noninteractive \
     TZ=Asia/Shanghai \
-    USER=ubuntu \
-    PASSWORD=ubuntu \
-    VNC_PASSWORD=ubuntu
+    USER=temple \
+    PASSWORD=temple \
+    VNC_PASSWORD=temple
 
 # ============================================
 # 1. Base packages + SSL tools + tmux + git
@@ -93,12 +93,13 @@ RUN wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd6
 # 7. User setup (add to ssl-cert and docker groups)
 # ============================================
 RUN userdel -r ubuntu 2>/dev/null || true && \
-    useradd -m -s /bin/bash -u 1000 ubuntu && \
-    echo "ubuntu:ubuntu" | chpasswd && \
-    usermod -aG sudo ubuntu && \
-    usermod -aG ssl-cert ubuntu && \
-    usermod -aG docker ubuntu && \
-    echo "ubuntu ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+    userdel -r temple 2>/dev/null || true && \
+    useradd -m -s /bin/bash -u 1000 temple && \
+    echo "temple:temple" | chpasswd && \
+    usermod -aG sudo temple && \
+    usermod -aG ssl-cert temple && \
+    usermod -aG docker temple && \
+    echo "temple ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 # ============================================
 # 7. Create Chrome wrapper script (needs --no-sandbox in Docker)
@@ -114,40 +115,40 @@ RUN echo '#!/bin/bash' > /usr/local/bin/chrome && \
 # ============================================
 # 8. Create desktop shortcuts for browsers
 # ============================================
-RUN mkdir -p /home/ubuntu/Desktop && \
-    echo '[Desktop Entry]' > /home/ubuntu/Desktop/chrome.desktop && \
-    echo 'Version=1.0' >> /home/ubuntu/Desktop/chrome.desktop && \
-    echo 'Type=Application' >> /home/ubuntu/Desktop/chrome.desktop && \
-    echo 'Name=Google Chrome' >> /home/ubuntu/Desktop/chrome.desktop && \
-    echo 'Exec=/usr/local/bin/chrome %U' >> /home/ubuntu/Desktop/chrome.desktop && \
-    echo 'Icon=google-chrome' >> /home/ubuntu/Desktop/chrome.desktop && \
-    echo 'Terminal=false' >> /home/ubuntu/Desktop/chrome.desktop && \
-    echo 'Categories=Network;WebBrowser;' >> /home/ubuntu/Desktop/chrome.desktop && \
-    chmod +x /home/ubuntu/Desktop/chrome.desktop && \
-    echo '[Desktop Entry]' > /home/ubuntu/Desktop/firefox.desktop && \
-    echo 'Version=1.0' >> /home/ubuntu/Desktop/firefox.desktop && \
-    echo 'Type=Application' >> /home/ubuntu/Desktop/firefox.desktop && \
-    echo 'Name=Firefox ESR' >> /home/ubuntu/Desktop/firefox.desktop && \
-    echo 'Exec=firefox-esr %U' >> /home/ubuntu/Desktop/firefox.desktop && \
-    echo 'Icon=firefox-esr' >> /home/ubuntu/Desktop/firefox.desktop && \
-    echo 'Terminal=false' >> /home/ubuntu/Desktop/firefox.desktop && \
-    echo 'Categories=Network;WebBrowser;' >> /home/ubuntu/Desktop/firefox.desktop && \
-    chmod +x /home/ubuntu/Desktop/firefox.desktop && \
-    chown -R ubuntu:ubuntu /home/ubuntu/Desktop
+RUN mkdir -p /home/temple/Desktop && \
+    echo '[Desktop Entry]' > /home/temple/Desktop/chrome.desktop && \
+    echo 'Version=1.0' >> /home/temple/Desktop/chrome.desktop && \
+    echo 'Type=Application' >> /home/temple/Desktop/chrome.desktop && \
+    echo 'Name=Google Chrome' >> /home/temple/Desktop/chrome.desktop && \
+    echo 'Exec=/usr/local/bin/chrome %U' >> /home/temple/Desktop/chrome.desktop && \
+    echo 'Icon=google-chrome' >> /home/temple/Desktop/chrome.desktop && \
+    echo 'Terminal=false' >> /home/temple/Desktop/chrome.desktop && \
+    echo 'Categories=Network;WebBrowser;' >> /home/temple/Desktop/chrome.desktop && \
+    chmod +x /home/temple/Desktop/chrome.desktop && \
+    echo '[Desktop Entry]' > /home/temple/Desktop/firefox.desktop && \
+    echo 'Version=1.0' >> /home/temple/Desktop/firefox.desktop && \
+    echo 'Type=Application' >> /home/temple/Desktop/firefox.desktop && \
+    echo 'Name=Firefox ESR' >> /home/temple/Desktop/firefox.desktop && \
+    echo 'Exec=firefox-esr %U' >> /home/temple/Desktop/firefox.desktop && \
+    echo 'Icon=firefox-esr' >> /home/temple/Desktop/firefox.desktop && \
+    echo 'Terminal=false' >> /home/temple/Desktop/firefox.desktop && \
+    echo 'Categories=Network;WebBrowser;' >> /home/temple/Desktop/firefox.desktop && \
+    chmod +x /home/temple/Desktop/firefox.desktop && \
+    chown -R temple:temple /home/temple/Desktop
 
 # ============================================
 # 9. Configure KasmVNC for ubuntu user
 # ============================================
-RUN mkdir -p /home/ubuntu/.vnc && \
-    echo "xfce" > /home/ubuntu/.vnc/de && \
-    echo '#!/bin/bash' > /home/ubuntu/.vnc/xstartup && \
-    echo 'unset SESSION_MANAGER' >> /home/ubuntu/.vnc/xstartup && \
-    echo 'unset DBUS_SESSION_BUS_ADDRESS' >> /home/ubuntu/.vnc/xstartup && \
-    echo 'export XDG_SESSION_TYPE=x11' >> /home/ubuntu/.vnc/xstartup && \
-    echo 'exec startxfce4' >> /home/ubuntu/.vnc/xstartup && \
-    chmod +x /home/ubuntu/.vnc/xstartup && \
-    touch /home/ubuntu/.Xauthority && \
-    chown -R ubuntu:ubuntu /home/ubuntu
+RUN mkdir -p /home/temple/.vnc && \
+    echo "xfce" > /home/temple/.vnc/de && \
+    echo '#!/bin/bash' > /home/temple/.vnc/xstartup && \
+    echo 'unset SESSION_MANAGER' >> /home/temple/.vnc/xstartup && \
+    echo 'unset DBUS_SESSION_BUS_ADDRESS' >> /home/temple/.vnc/xstartup && \
+    echo 'export XDG_SESSION_TYPE=x11' >> /home/temple/.vnc/xstartup && \
+    echo 'exec startxfce4' >> /home/temple/.vnc/xstartup && \
+    chmod +x /home/temple/.vnc/xstartup && \
+    touch /home/temple/.Xauthority && \
+    chown -R temple:temple /home/temple
 
 # ============================================
 # 10. Configure KasmVNC for root (fallback)
@@ -213,8 +214,8 @@ EXPOSE 22 6901 51200-51239
 HEALTHCHECK --interval=10s --timeout=5s --start-period=30s \
     CMD pgrep -f kasmvncserver || exit 1
 
-USER ubuntu
-WORKDIR /home/ubuntu
+USER temple
+WORKDIR /home/temple
 
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["start"]
