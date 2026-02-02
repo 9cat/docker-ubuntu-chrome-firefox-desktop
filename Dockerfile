@@ -36,15 +36,12 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # ============================================
-# 3. KasmVNC
+# 3. KasmVNC - direct .deb download
 # ============================================
-RUN wget -qO - https://github.com/kasmtech/KasmVNC/releases/download/v1.3.1/kasmvnc.asc | \
-    gpg --dearmor -o /usr/share/keyrings/kasmvnc-archive-keyring.gpg && \
-    echo "deb [signed-by=/usr/share/keyrings/kasmvnc-archive-keyring.gpg] \
-    https://github.com/kasmtech/KasmVNC/releases/download/v1.3.1/deb stable main" > \
-    /etc/apt/sources.list.d/kasmvnc.list && \
+RUN wget -q https://github.com/kasmtech/KasmVNC/releases/download/v1.3.1/kasmvncserver_1.3.1_amd64.deb -O /tmp/kasmvnc.deb && \
     apt-get update && \
-    apt-get install -y --no-install-recommends kasmvncserver && \
+    apt-get install -y /tmp/kasmvnc.deb && \
+    rm -f /tmp/kasmvnc.deb && \
     rm -rf /var/lib/apt/lists/*
 
 # ============================================
