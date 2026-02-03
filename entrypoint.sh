@@ -172,37 +172,36 @@ sleep 2
 # ============================================
 echo "Starting Docker daemon (DinD)..."
 
-# Function to start Docker daemon
-start_docker() {
-    echo "[Docker] Cleaning up any stale state..."
-    sudo rm -f /var/run/docker.sock /var/run/docker.pid 2>/dev/null || true
-    sudo killall dockerd containerd 2>/dev/null || true
+# Clean up any stale state
+echo "[Docker] Cleaning up any stale state..."
+sudo rm -f /var/run/docker.sock /var/run/docker.pid 2>/dev/null || true
+sudo killall dockerd containerd 2>/dev/null || true
+sleep 1
+
+# Create log file first to ensure it exists
+sudo touch /var/log/dockerd.log
+sudo chmod 644 /var/log/dockerd.log
+
+# Start dockerd using nohup to ensure it survives
+echo "[Docker] Starting dockerd with overlay2 storage driver..."
+sudo nohup dockerd --storage-driver=overlay2 >> /var/log/dockerd.log 2>&1 &
+DOCKERD_PID=$!
+echo "[Docker] dockerd started with PID: $DOCKERD_PID"
+
+# Wait for Docker to be ready (up to 30 seconds)
+echo "[Docker] Waiting for Docker daemon to be ready..."
+for i in $(seq 1 30); do
+    if docker info > /dev/null 2>&1; then
+        echo "[Docker] Docker daemon is ready! (took ${i}s)"
+        break
+    fi
     sleep 1
-
-    echo "[Docker] Starting dockerd with overlay2 storage driver..."
-    sudo dockerd --storage-driver=overlay2 >> /var/log/dockerd.log 2>&1 &
-    DOCKERD_PID=$!
-    echo "[Docker] dockerd started with PID: $DOCKERD_PID"
-
-    # Wait for Docker to be ready (up to 30 seconds)
-    echo "[Docker] Waiting for Docker daemon to be ready..."
-    for i in $(seq 1 30); do
-        if sudo docker info > /dev/null 2>&1; then
-            echo "[Docker] Docker daemon is ready! (took ${i}s)"
-            return 0
-        fi
-        sleep 1
-    done
-
-    echo "[Docker] WARNING: Docker daemon did not become ready in 30s"
-    echo "[Docker] Check /var/log/dockerd.log for details"
-    return 1
-}
-
-# Always start Docker daemon (DinD mode)
-# Don't rely on pgrep checks - just start it
-echo "[Docker] Starting Docker daemon..."
-start_docker
+    if [ $i -eq 30 ]; then
+        echo "[Docker] WARNING: Docker daemon did not become ready in 30s"
+        echo "[Docker] Log contents:"
+        sudo cat /var/log/dockerd.log | tail -20
+    fi
+done
 
 # ============================================
 # Start tmux session for Claude Code development
