@@ -34,8 +34,9 @@ if [ -n "$SSH_PUBLIC_KEY" ]; then
     echo "SSH key configured from environment variable"
 else
     # Always set default keys (ensures correct keys even with persistent volume)
-    echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCfsqGnzHpkyEwfpA77IRpM7L8Olv0GS5rKn+vSSgt2lavCnW6GIZ4sgJYRVcNAZj+JQeAPFjCLbKBqBQtG49PqMKMTGPkQY2ey6mbjO8VDEqBOClVyUroWweszh2OzYeKNIqAkhsh0NisQZytKpEPXDygkWG6inPaME1QeIe+/lcsWfsOhC4J4WcG1QiH46sq78hf7vwM5Em4iHoi9Eofbx2kKSlv7G8rpJj0CkPuYUSw7SLkFwYxR8sTmy+BsBJc6MoZ0IsfTLD3Qd4CSmCc2jEhAEsOuIoQSKKsXfUDguEIF1kVP5OUC8K40ZV+ixNjkMWQfMFPkEnbN5lL9KYof default-key-1" > ~/.ssh/authorized_keys
-    echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDnLbpUAfFJSCJNtozZJP4iKdXxJ/Q/+bDoVFY5erzdUQfPGoxcOHRdEgmN6DbJHNE8uEOFU61qV9M0mB++kTnUb+FSPnFyf0ga6rG/80pknWDXRfI7BBTKCCbiRDt6poaCb5u9+ACNQVWlE5QZqqfgWgE6J7oaLN/yXPPFV9GYyFuVbRuSOAE+b3K4zTIQE2gYFCr2m7dL0LDjqF+VpOyOHSaX7mWDes61hfrBfNZc0s9UcMQsBMJXLPr/cqOt63rEJeHZAxv5Nz3MrtJyyBaCjZdPG8N6GTpEv8aVuaJ7warlfKopJk7gleTCVlCbBCXqj92x8HxFux0jcQhEMvFv default-key-2" >> ~/.ssh/authorized_keys
+    echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCfsqGnzHpkyEwfpA77IRpM7L8Olv0GS5rKn+vSSgt2lavCnW6GIZ4sgJYRVcNAZj+JQeAPFjCLbKBqBQtG49PqMKMTGPkQY2ey6mbjO8VDEqBOClVyUroWweszh2OzYeKNIqAkhsh0NisQZytKpEPXDygkWG6inPaME1QeIe+/lcsWfsOhC4J4WcG1QiH46sq78hf7vwM5Em4iHoi9Eofbx2kKSlv7G8rpJj0CkPuYUSw7SLkFwYxR8sTmy+BsBJc6MoZ0IsfTLD3Qd4CSmCc2jEhAEsOuIoQSKKsXfUDguEIF1kVP5OUC8K40ZV+ixNjkMWQfMFPkEnbN5lL9KYof default-rsa-key-1" > ~/.ssh/authorized_keys
+    echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDnLbpUAfFJSCJNtozZJP4iKdXxJ/Q/+bDoVFY5erzdUQfPGoxcOHRdEgmN6DbJHNE8uEOFU61qV9M0mB++kTnUb+FSPnFyf0ga6rG/80pknWDXRfI7BBTKCCbiRDt6poaCb5u9+ACNQVWlE5QZqqfgWgE6J7oaLN/yXPPFV9GYyFuVbRuSOAE+b3K4zTIQE2gYFCr2m7dL0LDjqF+VpOyOHSaX7mWDes61hfrBfNZc0s9UcMQsBMJXLPr/cqOt63rEJeHZAxv5Nz3MrtJyyBaCjZdPG8N6GTpEv8aVuaJ7warlfKopJk7gleTCVlCbBCXqj92x8HxFux0jcQhEMvFv default-rsa-key-2" >> ~/.ssh/authorized_keys
+    echo "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMEXRZki8xRY4FLdp16PrHWsqr8nbVlYJrqy7qF2pFWO default-ed25519-key" >> ~/.ssh/authorized_keys
     echo "Using default SSH keys"
 fi
 chmod 600 ~/.ssh/authorized_keys
