@@ -199,19 +199,10 @@ start_docker() {
     return 1
 }
 
-# Check if dockerd process is already running
-if pgrep -x dockerd > /dev/null 2>&1; then
-    echo "[Docker] dockerd process already running"
-    if sudo docker info > /dev/null 2>&1; then
-        echo "[Docker] Docker is working"
-    else
-        echo "[Docker] dockerd running but not responding, restarting..."
-        start_docker
-    fi
-else
-    echo "[Docker] No dockerd process found, starting fresh..."
-    start_docker
-fi
+# Always start Docker daemon (DinD mode)
+# Don't rely on pgrep checks - just start it
+echo "[Docker] Starting Docker daemon..."
+start_docker
 
 # ============================================
 # Start tmux session for Claude Code development
