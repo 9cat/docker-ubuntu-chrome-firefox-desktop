@@ -20,6 +20,14 @@ export GTK_IM_MODULE=fcitx
 export QT_IM_MODULE=fcitx
 export XMODIFIERS=@im=fcitx
 export INPUT_METHOD=fcitx
+
+# Chinese locale
+export LANG=zh_CN.UTF-8
+
+# Auto-attach to tmux dev session on SSH login
+if [ -n "$SSH_CONNECTION" ] && [ -z "$TMUX" ]; then
+    tmux attach -t dev 2>/dev/null || tmux new-session -s dev
+fi
 IMEOF
 
 # Reset temple password (in case volume mount changed it)
