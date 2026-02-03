@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+# Don't use set -e - we want the script to continue even if some commands fail
 
 echo "========================================"
 echo "Ubuntu Desktop - Starting"
