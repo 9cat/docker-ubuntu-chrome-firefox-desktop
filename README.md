@@ -1,30 +1,29 @@
 # Ubuntu Desktop Development Environment
 
-Minimal Ubuntu Desktop environment with Chrome + Firefox + KasmVNC for remote browser access.
+[![Docker Hub](https://img.shields.io/docker/pulls/canadianbitcoin/dev-desktop)](https://hub.docker.com/r/canadianbitcoin/dev-desktop)
 
-极简的 Ubuntu 桌面开发环境，包含 Chrome + Firefox + KasmVNC。
+Minimal Ubuntu Desktop environment with Chrome, Firefox, Claude Code, and KasmVNC for remote development.
+
+[中文文档](README_zh.md)
 
 ## Features
 
 - **Ubuntu 24.04** base image
 - **XFCE4** lightweight desktop environment
 - **KasmVNC** web-based remote desktop (HTTPS)
-- **Chrome** + **Firefox ESR** browsers pre-installed
-- **Claude Code** - Anthropic's AI coding assistant pre-installed
-- **tmux session** - Auto-started dev session for SSH development
-- **Docker-in-Docker** - create and manage containers from within
-- **Auto-trusted SSL certificates** - no browser warnings
-- **SSH access** for terminal operations
-- **Persistent storage** via Docker volumes
+- **Chrome** + **Firefox ESR** browsers (Chrome as default)
+- **Claude Code** - Anthropic's AI coding assistant with auto-start
+- **tmux session** - Pre-configured dev session for SSH development
+- **Docker-in-Docker** - Create and manage containers from within
+- **Chinese support** - Fonts and input methods (Pinyin + Wubi)
+- **Auto-trusted SSL certificates** - No browser warnings
+- **SSH public key authentication** - Secure access
 
 ## Quick Start
 
-### Option 1: Use pre-built image from Docker Hub (Recommended)
-
-The fastest way - no build required, all dependencies pre-installed:
+### Option 1: Pre-built Image (Recommended)
 
 ```bash
-# Create docker-compose.yml
 cat > docker-compose.yml << 'EOF'
 services:
   desktop:
@@ -47,17 +46,10 @@ volumes:
   desktop-data:
 EOF
 
-# Start the container
 docker compose up -d
 ```
 
-**Available tags:**
-- `canadianbitcoin/dev-desktop:latest` - Latest stable release
-- `canadianbitcoin/dev-desktop:0.6` - Version 0.6
-
-### Option 2: Build from source
-
-If you need to customize the image or prefer building locally:
+### Option 2: Build from Source
 
 ```bash
 git clone https://github.com/9cat/docker-ubuntu-chrome-firefox-desktop.git
@@ -67,250 +59,110 @@ docker compose up -d --build
 
 ## Access
 
-| Service | URL | Default Credentials |
-|---------|-----|---------------------|
-| **Web Desktop** | https://localhost:16901 | temple / temple |
-| **SSH** | `ssh temple@localhost -p 10022` | temple / temple |
-
-> **Note**: CA certificate is automatically installed in Chrome and Firefox inside the container. No manual certificate import needed.
-
-## Port Configuration
-
-| Port | Service | Description |
-|------|---------|-------------|
-| `22` | SSH | Secure shell access |
-| `6901` | KasmVNC | Web-based VNC (HTTPS) |
-| `51200-51239` | Reserved | Additional services (optional) |
-
-### Custom Ports
-
-Edit `docker-compose.yml` to change port mappings:
-
-```yaml
-ports:
-  - "2222:22"      # SSH on port 2222
-  - "8443:6901"    # VNC on port 8443
-```
+| Service | URL | Credentials |
+|---------|-----|-------------|
+| Web Desktop | https://localhost:16901 | temple / temple |
+| SSH | `ssh temple@localhost -p 10022` | SSH key only |
 
 ## Environment Variables
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `USER` | temple | System username |
-| `PASSWORD` | temple | System & VNC web password |
+| `PASSWORD` | temple | VNC web password |
 | `VNC_PASSWORD` | temple | VNC login password |
 | `TZ` | Asia/Shanghai | Timezone |
 | `SSH_PUBLIC_KEY` | (built-in) | SSH public key for authentication |
 
-### Custom Credentials
+### SSH Configuration
 
-Create a `.env` file:
-
-```bash
-PASSWORD=mysecretpassword
-VNC_PASSWORD=mysecretpassword
-TZ=America/New_York
-```
-
-Or set directly in `docker-compose.yml`:
-
-```yaml
-environment:
-  - PASSWORD=mysecretpassword
-  - VNC_PASSWORD=mysecretpassword
-```
-
-### SSH Public Key Authentication
-
-SSH uses **public key authentication only** (password login disabled). To use your own SSH key:
+SSH uses **public key authentication only**. To use your own key:
 
 ```yaml
 environment:
   - SSH_PUBLIC_KEY=ssh-rsa AAAA... your-key-comment
 ```
 
-For multiple keys, separate with newlines:
-
-```yaml
-environment:
-  - SSH_PUBLIC_KEY=ssh-rsa AAAA... key1
-    ssh-rsa BBBB... key2
-```
-
 Or mount your authorized_keys file:
 
 ```yaml
 volumes:
-  - ./my-authorized-keys:/home/temple/.ssh/authorized_keys:ro
+  - ./authorized_keys:/home/temple/.ssh/authorized_keys:ro
 ```
 
-If no `SSH_PUBLIC_KEY` is set and no authorized_keys exists, built-in default keys are used.
+## Claude Code
 
-## Management Commands
+Claude Code starts automatically in a tmux session when the container boots.
 
 ```bash
-# Start
-docker compose up -d
+# SSH into container
+ssh temple@localhost -p 10022
 
-# Stop
-docker compose down
-
-# View logs
-docker compose logs -f
-
-# Rebuild (after updates)
-docker compose up -d --build
-
-# Enter container shell
-docker exec -it temple-desktop bash
-
-# Reset (delete all data)
-docker compose down -v
+# Attach to tmux session (Claude Code is already running)
+tmux attach -t dev
 ```
 
-## Browser Usage
-
-Both browsers are accessible from the desktop:
-
-- **Chrome**: Click the Chrome icon or run `/usr/local/bin/chrome`
-- **Firefox**: Click the Firefox icon or run `firefox-esr`
-
-Chrome runs with `--no-sandbox` flag (required for Docker).
-
-## Claude Code Development
-
-[Claude Code](https://github.com/anthropics/claude-code) is Anthropic's official CLI for AI-assisted coding. It comes pre-installed and ready to use.
-
-### Getting Started
-
-1. SSH into the container:
-   ```bash
-   ssh temple@localhost -p 10022
-   ```
-
-2. Attach to the pre-created tmux session:
-   ```bash
-   tmux attach -t dev
-   ```
-
-3. Start Claude Code (requires API key):
-   ```bash
-   export ANTHROPIC_API_KEY=your-api-key
-   claude
-   ```
-
-### tmux Session
-
-A tmux session named `dev` is automatically created on container startup with two windows:
+### tmux Windows
 
 | Window | Name | Purpose |
 |--------|------|---------|
-| 0 | claude | Claude Code development |
-| 1 | shell | General shell tasks |
+| 0 | claude | Claude Code (auto-started) |
+| 1 | shell | General shell |
 
 ### tmux Shortcuts
 
 | Shortcut | Action |
 |----------|--------|
-| `Ctrl+b d` | Detach from session |
+| `Ctrl+b d` | Detach |
 | `Ctrl+b n` | Next window |
 | `Ctrl+b p` | Previous window |
-| `Ctrl+b c` | Create new window |
-| `Ctrl+b 0-9` | Switch to window by number |
 
-### Persistent API Key
+### API Key
 
-To avoid setting the API key every time, add it to your `.bashrc`:
+Set your Anthropic API key:
 
 ```bash
-echo 'export ANTHROPIC_API_KEY=your-api-key' >> ~/.bashrc
+echo 'export ANTHROPIC_API_KEY=your-key' >> ~/.bashrc
 ```
+
+## Chinese Input
+
+Chinese fonts and input methods (fcitx5) are pre-installed:
+
+- **Pinyin** (拼音)
+- **Wubi** (五笔)
+
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl+Space` | Toggle Chinese/English |
+| `Ctrl+Shift` | Switch Pinyin/Wubi |
 
 ## Docker-in-Docker
 
-This container supports running Docker commands and creating containers from within. Docker CLI and Docker Compose are pre-installed.
-
-### Default Mode: Socket Mounting
-
-By default, the container mounts the host's Docker socket (`/var/run/docker.sock`). This allows you to:
+Docker CLI and Compose are pre-installed. By default, the host's Docker socket is mounted:
 
 ```bash
-# Inside the container
-docker ps                    # List host's containers
-docker run hello-world       # Run a container (on host)
-docker compose up -d         # Use docker compose
+docker ps              # List containers
+docker run hello-world # Run container
 ```
 
-> **Note**: Containers created this way run on the host, not inside this container.
+For isolated Docker daemon, enable privileged mode and run `sudo dockerd &`.
 
-### Isolated Mode: True DinD
-
-For complete isolation (separate Docker daemon), enable privileged mode in `docker-compose.yml`:
-
-```yaml
-services:
-  desktop:
-    privileged: true
-    # Remove or comment out the socket mount:
-    # - /var/run/docker.sock:/var/run/docker.sock
-```
-
-Then start dockerd manually inside the container:
+## Management
 
 ```bash
-sudo dockerd &
-docker ps    # Now using isolated Docker daemon
+docker compose up -d          # Start
+docker compose down           # Stop
+docker compose logs -f        # Logs
+docker compose up -d --build  # Rebuild
+docker compose down -v        # Reset all data
 ```
 
-### Docker Usage Examples
+## Ports
 
-```bash
-# Pull and run an image
-docker pull nginx
-docker run -d -p 8080:80 nginx
-
-# Build from Dockerfile
-docker build -t myapp .
-
-# Docker Compose
-docker compose up -d
-
-# Check Docker version
-docker --version
-docker compose version
-```
-
-## Security Notes
-
-- Default passwords should be changed for production use
-- The container generates self-signed CA certificates for HTTPS
-- CA is automatically trusted by browsers inside the container
-- External browsers will show certificate warnings (expected)
-
-## Troubleshooting
-
-### Cannot connect to VNC
-```bash
-# Check if container is running
-docker ps
-
-# Check logs
-docker compose logs -f
-```
-
-### Browser won't start
-```bash
-# SSH into container and check
-docker exec -it temple-desktop bash
-chrome --version
-firefox-esr --version
-```
-
-### Reset to clean state
-```bash
-docker compose down -v
-docker compose up -d --build
-```
+| Port | Service |
+|------|---------|
+| 22 | SSH |
+| 6901 | KasmVNC (HTTPS) |
 
 ## License
 
