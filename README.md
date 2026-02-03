@@ -138,14 +138,21 @@ Chinese fonts and input methods (fcitx5) are pre-installed:
 
 ## Docker-in-Docker
 
-Docker CLI and Compose are pre-installed. By default, the host's Docker socket is mounted:
+True Docker-in-Docker is enabled by default. The container runs its own isolated Docker daemon:
 
 ```bash
-docker ps              # List containers
-docker run hello-world # Run container
+docker ps              # List containers (inside this container)
+docker run hello-world # Run container (isolated from host)
 ```
 
-For isolated Docker daemon, enable privileged mode and run `sudo dockerd &`.
+Containers created inside are completely isolated from the host. Ports 51200-51239 are mapped for inner container services.
+
+To switch to Docker-outside-of-Docker (share host's Docker), edit `docker-compose.yml`:
+```yaml
+privileged: false
+volumes:
+  - /var/run/docker.sock:/var/run/docker.sock
+```
 
 ## Management
 

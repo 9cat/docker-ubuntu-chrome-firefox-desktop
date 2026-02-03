@@ -160,6 +160,28 @@ echo "1" | kasmvncserver :1 \
 sleep 2
 
 # ============================================
+# Start Docker daemon for true Docker-in-Docker
+# ============================================
+echo "Starting Docker daemon (DinD)..."
+# Check if docker.sock exists (DooD mode) or start dockerd (DinD mode)
+if [ ! -S /var/run/docker.sock ]; then
+    sudo dockerd --storage-driver=overlay2 > /var/log/dockerd.log 2>&1 &
+    # Wait for Docker to be ready
+    for i in $(seq 1 30); do
+        if docker info > /dev/null 2>&1; then
+            echo "Docker daemon started successfully"
+            break
+        fi
+        sleep 1
+    done
+    if ! docker info > /dev/null 2>&1; then
+        echo "Warning: Docker daemon failed to start (check /var/log/dockerd.log)"
+    fi
+else
+    echo "Using host Docker socket (DooD mode)"
+fi
+
+# ============================================
 # Start tmux session for Claude Code development
 # ============================================
 echo "Starting tmux session 'dev'..."

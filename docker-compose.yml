@@ -1,7 +1,7 @@
 # Ubuntu Desktop Development Environment
 # Access: https://localhost:16901 (VNC) | ssh temple@localhost -p 10022
 # Default credentials: temple / temple
-# Docker-in-Docker: Enabled via socket mounting
+# True Docker-in-Docker: Isolated Docker daemon inside container
 
 services:
   desktop:
@@ -12,7 +12,7 @@ services:
     ports:
       - "10022:22"              # SSH access
       - "16901:6901"            # KasmVNC web interface (HTTPS)
-      # - "51200-51239:51200-51239"  # Optional: additional service ports
+      - "51200-51239:51200-51239"  # Docker container ports (for DinD)
     environment:
       - USER=${USER:-temple}
       - PASSWORD=${PASSWORD:-temple}
@@ -22,12 +22,13 @@ services:
       # - SSH_PUBLIC_KEY=${SSH_PUBLIC_KEY:-}
     volumes:
       - desktop-data:/home/temple
-      # Docker-in-Docker: Mount host Docker socket
-      - /var/run/docker.sock:/var/run/docker.sock
+      - docker-data:/var/lib/docker    # Persistent Docker data for DinD
+      # For Docker-outside-of-Docker (DooD) instead, uncomment below and set privileged: false
+      # - /var/run/docker.sock:/var/run/docker.sock
     cap_add:
       - SYS_PTRACE              # Required for debugging tools
-    # For true Docker-in-Docker (isolated daemon), uncomment:
-    # privileged: true
+    # True Docker-in-Docker requires privileged mode
+    privileged: true
     # Shared memory for Chrome performance
     shm_size: 2gb
 
@@ -35,3 +36,5 @@ volumes:
   desktop-data:
     # Persistent storage for user data
     # Use 'docker compose down -v' to reset
+  docker-data:
+    # Persistent storage for Docker-in-Docker data

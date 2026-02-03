@@ -138,14 +138,21 @@ echo 'export ANTHROPIC_API_KEY=你的密钥' >> ~/.bashrc
 
 ## Docker-in-Docker
 
-已预装 Docker CLI 和 Compose。默认挂载宿主机 Docker socket：
+默认启用真正的 Docker-in-Docker。容器内运行独立的 Docker 守护进程：
 
 ```bash
-docker ps              # 列出容器
-docker run hello-world # 运行容器
+docker ps              # 列出容器（容器内部）
+docker run hello-world # 运行容器（与宿主机隔离）
 ```
 
-如需隔离的 Docker 守护进程，启用特权模式并运行 `sudo dockerd &`。
+容器内创建的容器完全与宿主机隔离。端口 51200-51239 已映射供内部容器服务使用。
+
+如需切换到 Docker-outside-of-Docker（共享宿主机 Docker），编辑 `docker-compose.yml`：
+```yaml
+privileged: false
+volumes:
+  - /var/run/docker.sock:/var/run/docker.sock
+```
 
 ## 管理命令
 
