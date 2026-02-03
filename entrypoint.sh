@@ -164,29 +164,45 @@ sleep 2
 # ============================================
 echo "Starting Docker daemon (DinD)..."
 
-# Check if Docker is already working (handles both DinD and DooD)
-if docker info > /dev/null 2>&1; then
-    echo "Docker is already running"
-else
-    # Remove stale socket if exists
-    sudo rm -f /var/run/docker.sock 2>/dev/null || true
+# Function to start Docker daemon
+start_docker() {
+    echo "[Docker] Cleaning up any stale state..."
+    sudo rm -f /var/run/docker.sock /var/run/docker.pid 2>/dev/null || true
+    sudo killall dockerd containerd 2>/dev/null || true
+    sleep 1
 
-    # Start dockerd (DinD mode)
-    echo "Starting dockerd..."
-    sudo dockerd --storage-driver=overlay2 > /var/log/dockerd.log 2>&1 &
+    echo "[Docker] Starting dockerd with overlay2 storage driver..."
+    sudo dockerd --storage-driver=overlay2 >> /var/log/dockerd.log 2>&1 &
+    DOCKERD_PID=$!
+    echo "[Docker] dockerd started with PID: $DOCKERD_PID"
 
-    # Wait for Docker to be ready
+    # Wait for Docker to be ready (up to 30 seconds)
+    echo "[Docker] Waiting for Docker daemon to be ready..."
     for i in $(seq 1 30); do
-        if docker info > /dev/null 2>&1; then
-            echo "Docker daemon started successfully"
-            break
+        if sudo docker info > /dev/null 2>&1; then
+            echo "[Docker] Docker daemon is ready! (took ${i}s)"
+            return 0
         fi
         sleep 1
     done
 
-    if ! docker info > /dev/null 2>&1; then
-        echo "Warning: Docker daemon failed to start (check /var/log/dockerd.log)"
+    echo "[Docker] WARNING: Docker daemon did not become ready in 30s"
+    echo "[Docker] Check /var/log/dockerd.log for details"
+    return 1
+}
+
+# Check if dockerd process is already running
+if pgrep -x dockerd > /dev/null 2>&1; then
+    echo "[Docker] dockerd process already running"
+    if sudo docker info > /dev/null 2>&1; then
+        echo "[Docker] Docker is working"
+    else
+        echo "[Docker] dockerd running but not responding, restarting..."
+        start_docker
     fi
+else
+    echo "[Docker] No dockerd process found, starting fresh..."
+    start_docker
 fi
 
 # ============================================
