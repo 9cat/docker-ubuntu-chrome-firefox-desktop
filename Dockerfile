@@ -14,7 +14,8 @@ ENV DEBIAN_FRONTEND=noninteractive \
     TZ=Asia/Shanghai \
     USER=temple \
     PASSWORD=temple \
-    VNC_PASSWORD=temple
+    VNC_PASSWORD=temple \
+    SSH_PUBLIC_KEY=""
 
 # ============================================
 # 1. Base packages + SSL tools + tmux + git

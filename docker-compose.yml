@@ -18,6 +18,8 @@ services:
       - PASSWORD=${PASSWORD:-temple}
       - VNC_PASSWORD=${VNC_PASSWORD:-temple}
       - TZ=${TZ:-Asia/Shanghai}
+      # SSH_PUBLIC_KEY - Set your SSH public key to override defaults
+      # - SSH_PUBLIC_KEY=${SSH_PUBLIC_KEY:-}
     volumes:
       - desktop-data:/home/temple
       # Docker-in-Docker: Mount host Docker socket

@@ -97,9 +97,10 @@ ports:
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `USER` | temple | System username |
-| `PASSWORD` | temple | System & SSH password |
+| `PASSWORD` | temple | System & VNC web password |
 | `VNC_PASSWORD` | temple | VNC login password |
 | `TZ` | Asia/Shanghai | Timezone |
+| `SSH_PUBLIC_KEY` | (built-in) | SSH public key for authentication |
 
 ### Custom Credentials
 
@@ -118,6 +119,32 @@ environment:
   - PASSWORD=mysecretpassword
   - VNC_PASSWORD=mysecretpassword
 ```
+
+### SSH Public Key Authentication
+
+SSH uses **public key authentication only** (password login disabled). To use your own SSH key:
+
+```yaml
+environment:
+  - SSH_PUBLIC_KEY=ssh-rsa AAAA... your-key-comment
+```
+
+For multiple keys, separate with newlines:
+
+```yaml
+environment:
+  - SSH_PUBLIC_KEY=ssh-rsa AAAA... key1
+    ssh-rsa BBBB... key2
+```
+
+Or mount your authorized_keys file:
+
+```yaml
+volumes:
+  - ./my-authorized-keys:/home/temple/.ssh/authorized_keys:ro
+```
+
+If no `SSH_PUBLIC_KEY` is set and no authorized_keys exists, built-in default keys are used.
 
 ## Management Commands
 
