@@ -114,6 +114,48 @@ RUN echo '#!/bin/bash' > /usr/local/bin/chrome && \
     chmod +x /usr/local/bin/chrome
 
 # ============================================
+# 7b. Set Chrome as default browser
+# ============================================
+RUN mkdir -p /home/temple/.config/xfce4 && \
+    echo '[Configuration]' > /home/temple/.config/xfce4/helpers.rc && \
+    echo 'WebBrowser=custom-WebBrowser' >> /home/temple/.config/xfce4/helpers.rc && \
+    mkdir -p /home/temple/.local/share/xfce4/helpers && \
+    echo '[Desktop Entry]' > /home/temple/.local/share/xfce4/helpers/custom-WebBrowser.desktop && \
+    echo 'NoDisplay=true' >> /home/temple/.local/share/xfce4/helpers/custom-WebBrowser.desktop && \
+    echo 'Version=1.0' >> /home/temple/.local/share/xfce4/helpers/custom-WebBrowser.desktop && \
+    echo 'Encoding=UTF-8' >> /home/temple/.local/share/xfce4/helpers/custom-WebBrowser.desktop && \
+    echo 'Type=X-XFCE-Helper' >> /home/temple/.local/share/xfce4/helpers/custom-WebBrowser.desktop && \
+    echo 'X-XFCE-Category=WebBrowser' >> /home/temple/.local/share/xfce4/helpers/custom-WebBrowser.desktop && \
+    echo 'X-XFCE-CommandsWithParameter=/usr/local/bin/chrome "%s"' >> /home/temple/.local/share/xfce4/helpers/custom-WebBrowser.desktop && \
+    echo 'X-XFCE-Commands=/usr/local/bin/chrome' >> /home/temple/.local/share/xfce4/helpers/custom-WebBrowser.desktop && \
+    echo 'Name=Google Chrome' >> /home/temple/.local/share/xfce4/helpers/custom-WebBrowser.desktop && \
+    echo 'Icon=google-chrome' >> /home/temple/.local/share/xfce4/helpers/custom-WebBrowser.desktop && \
+    chown -R temple:temple /home/temple/.config/xfce4 /home/temple/.local/share/xfce4
+
+# Set xdg-open default browser
+RUN mkdir -p /home/temple/.config && \
+    echo '[Default Applications]' > /home/temple/.config/mimeapps.list && \
+    echo 'text/html=chrome.desktop' >> /home/temple/.config/mimeapps.list && \
+    echo 'x-scheme-handler/http=chrome.desktop' >> /home/temple/.config/mimeapps.list && \
+    echo 'x-scheme-handler/https=chrome.desktop' >> /home/temple/.config/mimeapps.list && \
+    echo 'x-scheme-handler/about=chrome.desktop' >> /home/temple/.config/mimeapps.list && \
+    echo 'x-scheme-handler/unknown=chrome.desktop' >> /home/temple/.config/mimeapps.list && \
+    chown temple:temple /home/temple/.config/mimeapps.list
+
+# Create chrome.desktop for xdg-open
+RUN mkdir -p /home/temple/.local/share/applications && \
+    echo '[Desktop Entry]' > /home/temple/.local/share/applications/chrome.desktop && \
+    echo 'Version=1.0' >> /home/temple/.local/share/applications/chrome.desktop && \
+    echo 'Type=Application' >> /home/temple/.local/share/applications/chrome.desktop && \
+    echo 'Name=Google Chrome' >> /home/temple/.local/share/applications/chrome.desktop && \
+    echo 'Exec=/usr/local/bin/chrome %U' >> /home/temple/.local/share/applications/chrome.desktop && \
+    echo 'Icon=google-chrome' >> /home/temple/.local/share/applications/chrome.desktop && \
+    echo 'Terminal=false' >> /home/temple/.local/share/applications/chrome.desktop && \
+    echo 'Categories=Network;WebBrowser;' >> /home/temple/.local/share/applications/chrome.desktop && \
+    echo 'MimeType=text/html;x-scheme-handler/http;x-scheme-handler/https;' >> /home/temple/.local/share/applications/chrome.desktop && \
+    chown -R temple:temple /home/temple/.local/share/applications
+
+# ============================================
 # 8. Create desktop shortcuts for browsers
 # ============================================
 RUN mkdir -p /home/temple/Desktop && \
