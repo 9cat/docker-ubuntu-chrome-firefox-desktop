@@ -147,7 +147,7 @@ sleep 2
 echo "Starting tmux session 'dev'..."
 tmux new-session -d -s dev -n claude
 tmux send-keys -t dev:claude "cd ~" C-m
-tmux send-keys -t dev:claude "echo 'Claude Code ready! Run: claude'" C-m
+tmux send-keys -t dev:claude "claude --dangerously-skip-permissions" C-m
 
 # Create a second window for general shell
 tmux new-window -t dev -n shell
