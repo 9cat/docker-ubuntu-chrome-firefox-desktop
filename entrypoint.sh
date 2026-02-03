@@ -183,10 +183,10 @@ sudo touch /var/log/dockerd.log
 sudo chmod 644 /var/log/dockerd.log
 
 # Start dockerd using nohup to ensure it survives
+# Note: Must use 'sudo sh -c' so redirection happens as root, not current user
 echo "[Docker] Starting dockerd with overlay2 storage driver..."
-sudo nohup dockerd --storage-driver=overlay2 >> /var/log/dockerd.log 2>&1 &
-DOCKERD_PID=$!
-echo "[Docker] dockerd started with PID: $DOCKERD_PID"
+sudo sh -c 'nohup dockerd --storage-driver=overlay2 >> /var/log/dockerd.log 2>&1 &'
+echo "[Docker] dockerd started in background"
 
 # Wait for Docker to be ready (up to 30 seconds)
 echo "[Docker] Waiting for Docker daemon to be ready..."
