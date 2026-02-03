@@ -59,6 +59,50 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # ============================================
+# 3b. Chinese fonts and input methods (Pinyin + Wubi)
+# ============================================
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        fonts-wqy-zenhei fonts-wqy-microhei fonts-noto-cjk \
+        fcitx5 fcitx5-chinese-addons fcitx5-frontend-gtk3 \
+        fcitx5-config-qt im-config && \
+    rm -rf /var/lib/apt/lists/*
+
+# Configure fcitx5 autostart and input methods
+RUN mkdir -p /home/temple/.config/autostart && \
+    echo '[Desktop Entry]' > /home/temple/.config/autostart/fcitx5.desktop && \
+    echo 'Name=Fcitx 5' >> /home/temple/.config/autostart/fcitx5.desktop && \
+    echo 'GenericName=Input Method' >> /home/temple/.config/autostart/fcitx5.desktop && \
+    echo 'Exec=fcitx5' >> /home/temple/.config/autostart/fcitx5.desktop && \
+    echo 'Terminal=false' >> /home/temple/.config/autostart/fcitx5.desktop && \
+    echo 'Type=Application' >> /home/temple/.config/autostart/fcitx5.desktop && \
+    echo 'Categories=System;Utility;' >> /home/temple/.config/autostart/fcitx5.desktop && \
+    echo 'X-GNOME-Autostart-Phase=Applications' >> /home/temple/.config/autostart/fcitx5.desktop && \
+    echo 'X-GNOME-AutoRestart=false' >> /home/temple/.config/autostart/fcitx5.desktop && \
+    echo 'X-GNOME-Autostart-Notify=false' >> /home/temple/.config/autostart/fcitx5.desktop && \
+    mkdir -p /home/temple/.config/fcitx5/profile && \
+    echo '[Groups/0]' > /home/temple/.config/fcitx5/profile/default && \
+    echo 'Name=Default' >> /home/temple/.config/fcitx5/profile/default && \
+    echo 'Default Layout=us' >> /home/temple/.config/fcitx5/profile/default && \
+    echo 'DefaultIM=pinyin' >> /home/temple/.config/fcitx5/profile/default && \
+    echo '' >> /home/temple/.config/fcitx5/profile/default && \
+    echo '[Groups/0/Items/0]' >> /home/temple/.config/fcitx5/profile/default && \
+    echo 'Name=keyboard-us' >> /home/temple/.config/fcitx5/profile/default && \
+    echo 'Layout=' >> /home/temple/.config/fcitx5/profile/default && \
+    echo '' >> /home/temple/.config/fcitx5/profile/default && \
+    echo '[Groups/0/Items/1]' >> /home/temple/.config/fcitx5/profile/default && \
+    echo 'Name=pinyin' >> /home/temple/.config/fcitx5/profile/default && \
+    echo 'Layout=' >> /home/temple/.config/fcitx5/profile/default && \
+    echo '' >> /home/temple/.config/fcitx5/profile/default && \
+    echo '[Groups/0/Items/2]' >> /home/temple/.config/fcitx5/profile/default && \
+    echo 'Name=wubi' >> /home/temple/.config/fcitx5/profile/default && \
+    echo 'Layout=' >> /home/temple/.config/fcitx5/profile/default && \
+    echo '' >> /home/temple/.config/fcitx5/profile/default && \
+    echo '[GroupOrder]' >> /home/temple/.config/fcitx5/profile/default && \
+    echo '0=Default' >> /home/temple/.config/fcitx5/profile/default && \
+    chown -R temple:temple /home/temple/.config/autostart /home/temple/.config/fcitx5
+
+# ============================================
 # 3. Firefox ESR from Mozilla PPA (snap doesn't work in Docker)
 # ============================================
 RUN apt-get update && \

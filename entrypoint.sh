@@ -5,6 +5,23 @@ echo "========================================"
 echo "Ubuntu Desktop - Starting"
 echo "========================================"
 
+# ============================================
+# Setup fcitx5 input method for Chinese
+# ============================================
+export GTK_IM_MODULE=fcitx
+export QT_IM_MODULE=fcitx
+export XMODIFIERS=@im=fcitx
+export INPUT_METHOD=fcitx
+
+# Add to .bashrc for persistence
+grep -q "GTK_IM_MODULE" ~/.bashrc 2>/dev/null || cat >> ~/.bashrc << 'IMEOF'
+# Chinese input method (fcitx5)
+export GTK_IM_MODULE=fcitx
+export QT_IM_MODULE=fcitx
+export XMODIFIERS=@im=fcitx
+export INPUT_METHOD=fcitx
+IMEOF
+
 # Reset temple password (in case volume mount changed it)
 echo "temple:${PASSWORD:-temple}" | sudo chpasswd
 
