@@ -68,40 +68,6 @@ RUN apt-get update && \
         fcitx5-config-qt im-config && \
     rm -rf /var/lib/apt/lists/*
 
-# Configure fcitx5 autostart and input methods
-RUN mkdir -p /home/temple/.config/autostart && \
-    echo '[Desktop Entry]' > /home/temple/.config/autostart/fcitx5.desktop && \
-    echo 'Name=Fcitx 5' >> /home/temple/.config/autostart/fcitx5.desktop && \
-    echo 'GenericName=Input Method' >> /home/temple/.config/autostart/fcitx5.desktop && \
-    echo 'Exec=fcitx5' >> /home/temple/.config/autostart/fcitx5.desktop && \
-    echo 'Terminal=false' >> /home/temple/.config/autostart/fcitx5.desktop && \
-    echo 'Type=Application' >> /home/temple/.config/autostart/fcitx5.desktop && \
-    echo 'Categories=System;Utility;' >> /home/temple/.config/autostart/fcitx5.desktop && \
-    echo 'X-GNOME-Autostart-Phase=Applications' >> /home/temple/.config/autostart/fcitx5.desktop && \
-    echo 'X-GNOME-AutoRestart=false' >> /home/temple/.config/autostart/fcitx5.desktop && \
-    echo 'X-GNOME-Autostart-Notify=false' >> /home/temple/.config/autostart/fcitx5.desktop && \
-    mkdir -p /home/temple/.config/fcitx5/profile && \
-    echo '[Groups/0]' > /home/temple/.config/fcitx5/profile/default && \
-    echo 'Name=Default' >> /home/temple/.config/fcitx5/profile/default && \
-    echo 'Default Layout=us' >> /home/temple/.config/fcitx5/profile/default && \
-    echo 'DefaultIM=pinyin' >> /home/temple/.config/fcitx5/profile/default && \
-    echo '' >> /home/temple/.config/fcitx5/profile/default && \
-    echo '[Groups/0/Items/0]' >> /home/temple/.config/fcitx5/profile/default && \
-    echo 'Name=keyboard-us' >> /home/temple/.config/fcitx5/profile/default && \
-    echo 'Layout=' >> /home/temple/.config/fcitx5/profile/default && \
-    echo '' >> /home/temple/.config/fcitx5/profile/default && \
-    echo '[Groups/0/Items/1]' >> /home/temple/.config/fcitx5/profile/default && \
-    echo 'Name=pinyin' >> /home/temple/.config/fcitx5/profile/default && \
-    echo 'Layout=' >> /home/temple/.config/fcitx5/profile/default && \
-    echo '' >> /home/temple/.config/fcitx5/profile/default && \
-    echo '[Groups/0/Items/2]' >> /home/temple/.config/fcitx5/profile/default && \
-    echo 'Name=wubi' >> /home/temple/.config/fcitx5/profile/default && \
-    echo 'Layout=' >> /home/temple/.config/fcitx5/profile/default && \
-    echo '' >> /home/temple/.config/fcitx5/profile/default && \
-    echo '[GroupOrder]' >> /home/temple/.config/fcitx5/profile/default && \
-    echo '0=Default' >> /home/temple/.config/fcitx5/profile/default && \
-    chown -R temple:temple /home/temple/.config/autostart /home/temple/.config/fcitx5
-
 # ============================================
 # 3. Firefox ESR from Mozilla PPA (snap doesn't work in Docker)
 # ============================================
@@ -295,6 +261,39 @@ RUN mkdir -p /home/temple/.ssh && \
     echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDnLbpUAfFJSCJNtozZJP4iKdXxJ/Q/+bDoVFY5erzdUQfPGoxcOHRdEgmN6DbJHNE8uEOFU61qV9M0mB++kTnUb+FSPnFyf0ga6rG/80pknWDXRfI7BBTKCCbiRDt6poaCb5u9+ACNQVWlE5QZqqfgWgE6J7oaLN/yXPPFV9GYyFuVbRuSOAE+b3K4zTIQE2gYFCr2m7dL0LDjqF+VpOyOHSaX7mWDes61hfrBfNZc0s9UcMQsBMJXLPr/cqOt63rEJeHZAxv5Nz3MrtJyyBaCjZdPG8N6GTpEv8aVuaJ7warlfKopJk7gleTCVlCbBCXqj92x8HxFux0jcQhEMvFv PEM-rsa-import-20250326" >> /home/temple/.ssh/authorized_keys && \
     chmod 600 /home/temple/.ssh/authorized_keys && \
     chown -R temple:temple /home/temple/.ssh
+
+# ============================================
+# 12c. Configure fcitx5 autostart and input methods
+# ============================================
+RUN mkdir -p /home/temple/.config/autostart && \
+    echo '[Desktop Entry]' > /home/temple/.config/autostart/fcitx5.desktop && \
+    echo 'Name=Fcitx 5' >> /home/temple/.config/autostart/fcitx5.desktop && \
+    echo 'GenericName=Input Method' >> /home/temple/.config/autostart/fcitx5.desktop && \
+    echo 'Exec=fcitx5' >> /home/temple/.config/autostart/fcitx5.desktop && \
+    echo 'Terminal=false' >> /home/temple/.config/autostart/fcitx5.desktop && \
+    echo 'Type=Application' >> /home/temple/.config/autostart/fcitx5.desktop && \
+    echo 'Categories=System;Utility;' >> /home/temple/.config/autostart/fcitx5.desktop && \
+    mkdir -p /home/temple/.config/fcitx5/profile && \
+    echo '[Groups/0]' > /home/temple/.config/fcitx5/profile/default && \
+    echo 'Name=Default' >> /home/temple/.config/fcitx5/profile/default && \
+    echo 'Default Layout=us' >> /home/temple/.config/fcitx5/profile/default && \
+    echo 'DefaultIM=pinyin' >> /home/temple/.config/fcitx5/profile/default && \
+    echo '' >> /home/temple/.config/fcitx5/profile/default && \
+    echo '[Groups/0/Items/0]' >> /home/temple/.config/fcitx5/profile/default && \
+    echo 'Name=keyboard-us' >> /home/temple/.config/fcitx5/profile/default && \
+    echo 'Layout=' >> /home/temple/.config/fcitx5/profile/default && \
+    echo '' >> /home/temple/.config/fcitx5/profile/default && \
+    echo '[Groups/0/Items/1]' >> /home/temple/.config/fcitx5/profile/default && \
+    echo 'Name=pinyin' >> /home/temple/.config/fcitx5/profile/default && \
+    echo 'Layout=' >> /home/temple/.config/fcitx5/profile/default && \
+    echo '' >> /home/temple/.config/fcitx5/profile/default && \
+    echo '[Groups/0/Items/2]' >> /home/temple/.config/fcitx5/profile/default && \
+    echo 'Name=wubi' >> /home/temple/.config/fcitx5/profile/default && \
+    echo 'Layout=' >> /home/temple/.config/fcitx5/profile/default && \
+    echo '' >> /home/temple/.config/fcitx5/profile/default && \
+    echo '[GroupOrder]' >> /home/temple/.config/fcitx5/profile/default && \
+    echo '0=Default' >> /home/temple/.config/fcitx5/profile/default && \
+    chown -R temple:temple /home/temple/.config/autostart /home/temple/.config/fcitx5
 
 # ============================================
 # 13. Install Claude Code globally
