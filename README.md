@@ -1,6 +1,6 @@
 # Ubuntu Desktop Development Environment
 
-[![Docker Hub](https://img.shields.io/docker/pulls/canadianbitcoin/dev-desktop)](https://hub.docker.com/r/canadianbitcoin/dev-desktop)
+[![Docker Hub](https://img.shields.io/docker/pulls/canadianbitcoin/temple-desktop-dev)](https://hub.docker.com/r/canadianbitcoin/temple-desktop-dev)
 
 Minimal Ubuntu Desktop environment with Chrome, Firefox, Claude Code, and KasmVNC for remote development.
 
@@ -21,15 +21,49 @@ Minimal Ubuntu Desktop environment with Chrome, Firefox, Claude Code, and KasmVN
 
 ## Quick Start
 
-### Option 1: Pre-built Image (Recommended)
+### Option 1: One-Line Docker Run (Fastest)
+
+```bash
+docker run -d --name temple-desktop --privileged --shm-size 2gb \
+  -p 10022:22 -p 16901:6901 \
+  -e PASSWORD=temple -e VNC_PASSWORD=temple \
+  canadianbitcoin/temple-desktop-dev:latest
+```
+
+### Option 2: Quickstart Script
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/9cat/docker-ubuntu-chrome-firefox-desktop/main/quickstart.sh | bash
+```
+
+Or with custom settings:
+
+```bash
+# Download and run with custom name/ports
+curl -fsSL https://raw.githubusercontent.com/9cat/docker-ubuntu-chrome-firefox-desktop/main/quickstart.sh -o quickstart.sh
+chmod +x quickstart.sh
+./quickstart.sh my-desktop 16902 10023  # [instance-name] [vnc-port] [ssh-port]
+```
+
+### Option 3: Docker Compose
+
+```bash
+git clone https://github.com/9cat/docker-ubuntu-chrome-firefox-desktop.git
+cd docker-ubuntu-chrome-firefox-desktop
+docker compose up -d
+```
+
+### Option 4: Inline Docker Compose
 
 ```bash
 cat > docker-compose.yml << 'EOF'
 services:
   desktop:
-    image: canadianbitcoin/dev-desktop:latest
+    image: canadianbitcoin/temple-desktop-dev:latest
     container_name: temple-desktop
     restart: unless-stopped
+    privileged: true
+    shm_size: 2gb
     ports:
       - "10022:22"
       - "16901:6901"
@@ -39,22 +73,43 @@ services:
       - TZ=Asia/Shanghai
     volumes:
       - desktop-data:/home/temple
-      - /var/run/docker.sock:/var/run/docker.sock
-    shm_size: 2gb
+      - docker-data:/var/lib/docker
 
 volumes:
   desktop-data:
+  docker-data:
 EOF
 
 docker compose up -d
 ```
 
-### Option 2: Build from Source
+## Running Multiple Instances
+
+Create additional instances with different ports:
 
 ```bash
-git clone https://github.com/9cat/docker-ubuntu-chrome-firefox-desktop.git
-cd docker-ubuntu-chrome-firefox-desktop
-docker compose up -d --build
+# Instance 2
+docker run -d --name temple-desktop-2 --privileged --shm-size 2gb \
+  -p 10023:22 -p 16902:6901 \
+  -v temple-desktop-2-data:/home/temple \
+  -v temple-desktop-2-docker:/var/lib/docker \
+  -e PASSWORD=temple -e VNC_PASSWORD=temple \
+  canadianbitcoin/temple-desktop-dev:latest
+
+# Instance 3
+docker run -d --name temple-desktop-3 --privileged --shm-size 2gb \
+  -p 10024:22 -p 16903:6901 \
+  -v temple-desktop-3-data:/home/temple \
+  -v temple-desktop-3-docker:/var/lib/docker \
+  -e PASSWORD=temple -e VNC_PASSWORD=temple \
+  canadianbitcoin/temple-desktop-dev:latest
+```
+
+Or use the quickstart script:
+
+```bash
+./quickstart.sh desktop-2 16902 10023
+./quickstart.sh desktop-3 16903 10024
 ```
 
 ## Access
@@ -62,20 +117,20 @@ docker compose up -d --build
 | Service | URL | Credentials |
 |---------|-----|-------------|
 | Web Desktop | https://localhost:16901 | temple / temple |
-| SSH | `ssh temple@localhost -p 10022` | SSH key only |
+| SSH | `ssh temple@localhost -p 10022` | SSH key or password |
 
 ## Environment Variables
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `PASSWORD` | temple | VNC web password |
+| `PASSWORD` | temple | Linux user password |
 | `VNC_PASSWORD` | temple | VNC login password |
 | `TZ` | Asia/Shanghai | Timezone |
 | `SSH_PUBLIC_KEY` | (built-in) | SSH public key for authentication |
 
 ### SSH Configuration
 
-SSH uses **public key authentication only**. To use your own key:
+SSH supports both password and public key authentication. To use your own key:
 
 ```yaml
 environment:
@@ -94,11 +149,11 @@ volumes:
 Claude Code starts automatically in a tmux session when the container boots.
 
 ```bash
-# SSH into container
+# SSH into container (auto-attaches to tmux)
 ssh temple@localhost -p 10022
 
-# Attach to tmux session (Claude Code is already running)
-tmux attach -t dev
+# Or manually attach
+docker exec -it temple-desktop tmux attach -t dev
 ```
 
 ### tmux Windows
