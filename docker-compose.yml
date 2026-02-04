@@ -6,7 +6,7 @@
 services:
   desktop:
     build: .
-    image: temple-desktop-dev:latest
+    image: 9cat/ubuntu-desktop:latest
     container_name: temple-desktop
     restart: unless-stopped
     ports:
