@@ -158,7 +158,8 @@ export KASM_VNC_DE=xfce
 
 # Start KasmVNC with HTTPS
 echo "Starting KasmVNC with HTTPS..."
-echo "1" | kasmvncserver :1 \
+# Pipe "1" to select XFCE and "y" to confirm overwrite of xstartup
+echo -e "1\ny" | kasmvncserver :1 \
     -websocketPort 6901 \
     -cert /etc/kasmvnc/ssl/kasmvnc.crt \
     -key /etc/kasmvnc/ssl/kasmvnc.key \
