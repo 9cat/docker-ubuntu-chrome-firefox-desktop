@@ -1,0 +1,33 @@
+# CUDA/GPU Support Overlay
+# Usage: docker compose -f docker-compose.yml -f docker-compose.cuda.yml up -d
+#
+# Prerequisites on host:
+#   1. NVIDIA Driver installed
+#   2. nvidia-container-toolkit installed:
+#      curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
+#      curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | \
+#        sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
+#        sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+#      sudo apt-get update && sudo apt-get install -y nvidia-container-toolkit
+#      sudo nvidia-ctk runtime configure --runtime=docker
+#      sudo systemctl restart docker
+
+services:
+  desktop:
+    # Build with CUDA base image
+    build:
+      context: .
+      args:
+        # Use nvidia/cuda as base image for CUDA support
+        # Change version as needed - see https://hub.docker.com/r/nvidia/cuda/tags
+        # Naming: nvidia/cuda:{CUDA_VERSION}-{devel|runtime}-ubuntu{UBUNTU_VERSION}
+        BASE_IMAGE: nvidia/cuda:12.6.2-devel-ubuntu24.04
+    image: canadianbitcoin/temple-desktop-dev:cuda
+    # Enable GPU access
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu, compute, utility, graphics, video, display]

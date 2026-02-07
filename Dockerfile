@@ -3,19 +3,34 @@
 # Chrome + Firefox + KasmVNC + Claude Code
 # HTTPS enabled with auto-trusted certificates
 # Docker-in-Docker support enabled
+# CUDA/OpenGL hardware acceleration support
+# ============================================
+# Build with CUDA:
+#   docker build --build-arg BASE_IMAGE=nvidia/cuda:12.6.2-devel-ubuntu24.04 -t temple-desktop:cuda .
+# Build without CUDA:
+#   docker build -t temple-desktop:latest .
 # ============================================
 
-FROM ubuntu:24.04
+ARG BASE_IMAGE=ubuntu:24.04
+FROM ${BASE_IMAGE}
 
 LABEL maintainer "temple <temple@iobond.com>"
-LABEL description="Minimal Ubuntu Desktop for Development"
+LABEL description="Minimal Ubuntu Desktop for Development with CUDA/OpenGL support"
+
+# ============================================
+# NVIDIA Container Runtime Configuration
+# These enable GPU passthrough when using nvidia-docker
+# ============================================
+ENV NVIDIA_VISIBLE_DEVICES=all \
+    NVIDIA_DRIVER_CAPABILITIES=all
 
 ENV DEBIAN_FRONTEND=noninteractive \
     TZ=Asia/Shanghai \
     USER=temple \
     PASSWORD=temple \
     VNC_PASSWORD=temple \
-    SSH_PUBLIC_KEY=""
+    SSH_PUBLIC_KEY="" \
+    VGL_DISPLAY=egl
 
 # ============================================
 # 1. Base packages + SSL tools + tmux + git
@@ -25,8 +40,47 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         ca-certificates curl wget gnupg sudo locales tzdata \
         openssh-server software-properties-common ssl-cert openssl \
-        tmux htop vim libnss3-tools git ripgrep && \
+        tmux htop vim libnss3-tools git ripgrep lsb-release && \
     locale-gen en_US.UTF-8 && \
+    rm -rf /var/lib/apt/lists/*
+
+# ============================================
+# 1c. OpenGL libraries and NVIDIA EGL configuration
+# Enables hardware-accelerated rendering via NVIDIA GPU
+# ============================================
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        libxau6 libxdmcp6 libxcb1 libxext6 libx11-6 \
+        libglvnd0 libgl1 libglx0 libegl1 libgles2 \
+        libglvnd-dev libgl1-mesa-dev libegl1-mesa-dev libgles2-mesa-dev \
+        mesa-utils && \
+    rm -rf /var/lib/apt/lists/* && \
+    mkdir -p /usr/share/glvnd/egl_vendor.d/ && \
+    echo '{"file_format_version":"1.0.0","ICD":{"library_path":"libEGL_nvidia.so.0"}}' \
+        > /usr/share/glvnd/egl_vendor.d/10_nvidia.json
+
+# ============================================
+# 1d. Vulkan support for NVIDIA GPU
+# ============================================
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends vulkan-tools libvulkan1 && \
+    rm -rf /var/lib/apt/lists/* && \
+    VULKAN_API_VERSION=$(dpkg -s libvulkan1 | grep -oP 'Version: [0-9|\.]+' | grep -oP '[0-9]+(\.[0-9]+)(\.[0-9]+)') && \
+    mkdir -p /etc/vulkan/icd.d/ && \
+    echo "{\"file_format_version\":\"1.0.0\",\"ICD\":{\"library_path\":\"libGLX_nvidia.so.0\",\"api_version\":\"${VULKAN_API_VERSION}\"}}" \
+        > /etc/vulkan/icd.d/nvidia_icd.json
+
+# ============================================
+# 1e. VirtualGL for hardware-accelerated 3D rendering
+# Usage: vglrun <application> (e.g., vglrun glxgears)
+# ============================================
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        libxtst6 libxv1 libturbojpeg && \
+    VIRTUALGL_VERSION=3.1.1 && \
+    curl -fsSL "https://github.com/VirtualGL/virtualgl/releases/download/${VIRTUALGL_VERSION}/virtualgl_${VIRTUALGL_VERSION}_amd64.deb" -o /tmp/virtualgl.deb && \
+    dpkg -i /tmp/virtualgl.deb && \
+    rm /tmp/virtualgl.deb && \
     rm -rf /var/lib/apt/lists/*
 
 # ============================================
