@@ -300,7 +300,115 @@ RUN mkdir -p /home/temple/.config/autostart && \
     chown -R temple:temple /home/temple/.config/autostart /home/temple/.config/fcitx5
 
 # ============================================
-# 13. Install Claude Code globally
+# 13. Android Emulator + SDK (Option 1)
+# ============================================
+ENV ANDROID_SDK_ROOT=/opt/android-sdk
+ENV ANDROID_HOME=/opt/android-sdk
+ENV PATH="${PATH}:${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin:${ANDROID_SDK_ROOT}/platform-tools:${ANDROID_SDK_ROOT}/emulator"
+
+# Install Android SDK dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        openjdk-17-jdk-headless \
+        unzip \
+        libpulse0 \
+        libgl1-mesa-glx \
+        libgl1-mesa-dri \
+        libegl1-mesa \
+        libxkbcommon0 \
+        libxcb-cursor0 \
+        qemu-kvm \
+        bridge-utils && \
+    rm -rf /var/lib/apt/lists/*
+
+# Download and install Android command-line tools
+RUN mkdir -p ${ANDROID_SDK_ROOT}/cmdline-tools && \
+    cd ${ANDROID_SDK_ROOT}/cmdline-tools && \
+    wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O cmdline-tools.zip && \
+    unzip -q cmdline-tools.zip && \
+    mv cmdline-tools latest && \
+    rm cmdline-tools.zip && \
+    chmod -R 755 ${ANDROID_SDK_ROOT}
+
+# Accept licenses and install SDK components
+RUN yes | sdkmanager --licenses && \
+    sdkmanager "platform-tools" "emulator" \
+    "platforms;android-34" \
+    "system-images;android-34;google_apis;x86_64" && \
+    chmod -R 755 ${ANDROID_SDK_ROOT}
+
+# Create AVD (Android Virtual Device)
+RUN echo "no" | avdmanager create avd -n "android34" -k "system-images;android-34;google_apis;x86_64" -d "pixel_6"
+
+# Add temple user to kvm group
+RUN usermod -aG kvm temple || true
+
+# ============================================
+# 13b. Python automation tools (uiautomator2, adb)
+# ============================================
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        python3-pip \
+        python3-venv \
+        adb \
+        scrcpy && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install Python automation libraries (as temple user later via entrypoint)
+RUN pip3 install --break-system-packages \
+    uiautomator2 \
+    adbutils \
+    weditor \
+    Pillow
+
+# ============================================
+# 13c. Waydroid (Option 2) - needs Weston compositor
+# ============================================
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        weston \
+        python3-gbinder && \
+    rm -rf /var/lib/apt/lists/*
+
+# Add Waydroid repository and install
+RUN curl -s https://repo.waydro.id | bash && \
+    apt-get update && \
+    apt-get install -y waydroid && \
+    rm -rf /var/lib/apt/lists/* || true
+
+# ============================================
+# 13d. Create Android Emulator launcher script
+# ============================================
+RUN echo '#!/bin/bash' > /usr/local/bin/android-emulator && \
+    echo 'export ANDROID_SDK_ROOT=/opt/android-sdk' >> /usr/local/bin/android-emulator && \
+    echo 'export ANDROID_HOME=/opt/android-sdk' >> /usr/local/bin/android-emulator && \
+    echo '${ANDROID_SDK_ROOT}/emulator/emulator -avd android34 -gpu swiftshader_indirect -no-audio -no-snapshot "$@"' >> /usr/local/bin/android-emulator && \
+    chmod +x /usr/local/bin/android-emulator
+
+# Create Waydroid launcher script (runs in Weston)
+RUN echo '#!/bin/bash' > /usr/local/bin/waydroid-start && \
+    echo 'export XDG_RUNTIME_DIR=/tmp/weston-runtime' >> /usr/local/bin/waydroid-start && \
+    echo 'mkdir -p $XDG_RUNTIME_DIR' >> /usr/local/bin/waydroid-start && \
+    echo 'weston --xwayland &' >> /usr/local/bin/waydroid-start && \
+    echo 'sleep 2' >> /usr/local/bin/waydroid-start && \
+    echo 'waydroid session start &' >> /usr/local/bin/waydroid-start && \
+    echo 'waydroid show-full-ui' >> /usr/local/bin/waydroid-start && \
+    chmod +x /usr/local/bin/waydroid-start
+
+# Create desktop shortcuts for Android tools
+RUN mkdir -p /home/temple/Desktop && \
+    echo '[Desktop Entry]' > /home/temple/Desktop/android-emulator.desktop && \
+    echo 'Version=1.0' >> /home/temple/Desktop/android-emulator.desktop && \
+    echo 'Type=Application' >> /home/temple/Desktop/android-emulator.desktop && \
+    echo 'Name=Android Emulator' >> /home/temple/Desktop/android-emulator.desktop && \
+    echo 'Exec=/usr/local/bin/android-emulator' >> /home/temple/Desktop/android-emulator.desktop && \
+    echo 'Icon=phone' >> /home/temple/Desktop/android-emulator.desktop && \
+    echo 'Terminal=false' >> /home/temple/Desktop/android-emulator.desktop && \
+    chmod +x /home/temple/Desktop/android-emulator.desktop && \
+    chown temple:temple /home/temple/Desktop/android-emulator.desktop
+
+# ============================================
+# 14. Install Claude Code globally
 # ============================================
 RUN npm install -g @anthropic-ai/claude-code
 

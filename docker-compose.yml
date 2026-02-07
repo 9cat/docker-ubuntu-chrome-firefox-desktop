@@ -31,6 +31,12 @@ services:
     privileged: true
     # Shared memory for Chrome performance
     shm_size: 2gb
+    # KVM device for Android Emulator hardware acceleration
+    devices:
+      - /dev/kvm:/dev/kvm
+    # Group add for KVM access
+    group_add:
+      - kvm
 
 volumes:
   desktop-data:
