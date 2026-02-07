@@ -1,116 +1,201 @@
 # Ubuntu Desktop Development Environment
 
 [![Docker Hub](https://img.shields.io/docker/pulls/canadianbitcoin/temple-desktop-dev)](https://hub.docker.com/r/canadianbitcoin/temple-desktop-dev)
+[![GitHub](https://img.shields.io/badge/GitHub-9cat%2Fdocker--ubuntu--chrome--firefox--desktop-blue)](https://github.com/9cat/docker-ubuntu-chrome-firefox-desktop)
 
-Minimal Ubuntu Desktop environment with Chrome, Firefox, Claude Code, and KasmVNC for remote development.
+Minimal Ubuntu Desktop environment with Chrome, Firefox, Claude Code, KasmVNC, and **NVIDIA CUDA/OpenGL GPU acceleration** for remote development.
 
-[中文文档](README_zh.md)
+[中文文档](README_zh.md) | [CUDA 详细文档](CUDA.md)
+
+---
+
+## Branch: `cuda-support`
+
+This branch adds **NVIDIA CUDA and OpenGL GPU acceleration** support.
+
+### Release Notes
+
+| Version | Date | Changes |
+|---------|------|---------|
+| cuda-support | 2025-02-08 | Initial CUDA/OpenGL support |
+
+### What's New in This Branch
+
+- **CUDA Support**: Based on `nvidia/cuda` official images for automatic driver compatibility
+- **OpenGL Hardware Acceleration**: Via VirtualGL for 3D rendering
+- **Vulkan Support**: GPU-accelerated graphics API
+- **Flexible CUDA Versions**: Support for CUDA 11.x and 12.x
+
+### Links
+
+| Resource | URL |
+|----------|-----|
+| This Branch | https://github.com/9cat/docker-ubuntu-chrome-firefox-desktop/tree/cuda-support |
+| Main Branch | https://github.com/9cat/docker-ubuntu-chrome-firefox-desktop |
+| Android Branch | https://github.com/9cat/docker-ubuntu-chrome-firefox-desktop/tree/android-support |
+| Docker Hub | https://hub.docker.com/r/canadianbitcoin/temple-desktop-dev |
+| CUDA Documentation | [CUDA.md](CUDA.md) |
+
+---
 
 ## Features
 
+### Base Features
 - **Ubuntu 24.04** base image
 - **XFCE4** lightweight desktop environment
 - **KasmVNC** web-based remote desktop (HTTPS)
-- **Chrome** + **Firefox ESR** browsers (Chrome as default)
-- **Claude Code** - Anthropic's AI coding assistant with auto-start
-- **tmux session** - Pre-configured dev session for SSH development
-- **Docker-in-Docker** - Create and manage containers from within
+- **Chrome** + **Firefox ESR** browsers
+- **Claude Code** - Anthropic's AI coding assistant
+- **Docker-in-Docker** - Container management from within
 - **Chinese support** - Fonts and input methods (Pinyin + Wubi)
-- **Auto-trusted SSL certificates** - No browser warnings
-- **SSH public key authentication** - Secure access
 
-## Quick Start
+### CUDA/GPU Features (This Branch)
+- **NVIDIA CUDA Toolkit** - For deep learning, GPU computing
+- **OpenGL/EGL** - Hardware-accelerated 3D rendering
+- **VirtualGL** - Run 3D apps with GPU acceleration
+- **Vulkan** - Modern GPU graphics API
+- **Automatic Driver Compatibility** - Uses nvidia/cuda base images
 
-### Option 1: One-Line Docker Run (Fastest)
+---
 
-```bash
-docker run -d --name temple-desktop --privileged --shm-size 2gb \
-  -p 10022:22 -p 16901:6901 \
-  -e PASSWORD=temple -e VNC_PASSWORD=temple \
-  canadianbitcoin/temple-desktop-dev:latest
-```
+## Prerequisites (Host Machine)
 
-### Option 2: Quickstart Script
+### 1. NVIDIA Driver
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/9cat/docker-ubuntu-chrome-firefox-desktop/main/quickstart.sh | bash
+# Check if installed
+nvidia-smi
+
+# Install if needed (Ubuntu)
+sudo apt-get update
+sudo apt-get install -y nvidia-driver-550
 ```
 
-Or with custom settings:
+### 2. NVIDIA Container Toolkit
 
 ```bash
-# Download and run with custom name/ports
-curl -fsSL https://raw.githubusercontent.com/9cat/docker-ubuntu-chrome-firefox-desktop/main/quickstart.sh -o quickstart.sh
-chmod +x quickstart.sh
-./quickstart.sh my-desktop 16902 10023  # [instance-name] [vnc-port] [ssh-port]
+# Add repository
+curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | \
+    sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
+
+curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | \
+    sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
+    sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+
+# Install
+sudo apt-get update
+sudo apt-get install -y nvidia-container-toolkit
+
+# Configure Docker
+sudo nvidia-ctk runtime configure --runtime=docker
+sudo systemctl restart docker
+
+# Verify
+docker run --rm --gpus all nvidia/cuda:12.6.2-base-ubuntu24.04 nvidia-smi
 ```
 
-### Option 3: Docker Compose
+---
+
+## Quick Start (CUDA)
+
+### Option 1: Build Script (Recommended)
 
 ```bash
 git clone https://github.com/9cat/docker-ubuntu-chrome-firefox-desktop.git
 cd docker-ubuntu-chrome-firefox-desktop
-docker compose up -d
+git checkout cuda-support
+
+# Build with default CUDA 12.6.2
+./build-cuda.sh
+
+# Or specify CUDA version
+./build-cuda.sh 12.4.1
+./build-cuda.sh 11.8.0
+
+# Run with GPU
+docker compose -f docker-compose.yml -f docker-compose.cuda.yml up -d
 ```
 
-### Option 4: Inline Docker Compose
+### Option 2: Docker Compose
 
 ```bash
-cat > docker-compose.yml << 'EOF'
-services:
-  desktop:
-    image: canadianbitcoin/temple-desktop-dev:latest
-    container_name: temple-desktop
-    restart: unless-stopped
-    privileged: true
-    shm_size: 2gb
-    ports:
-      - "10022:22"
-      - "16901:6901"
-    environment:
-      - PASSWORD=temple
-      - VNC_PASSWORD=temple
-      - TZ=Asia/Shanghai
-    volumes:
-      - desktop-data:/home/temple
-      - docker-data:/var/lib/docker
+git clone https://github.com/9cat/docker-ubuntu-chrome-firefox-desktop.git
+cd docker-ubuntu-chrome-firefox-desktop
+git checkout cuda-support
 
-volumes:
-  desktop-data:
-  docker-data:
-EOF
-
-docker compose up -d
+# Build and run with GPU
+docker compose -f docker-compose.yml -f docker-compose.cuda.yml up -d
 ```
 
-## Running Multiple Instances
-
-Create additional instances with different ports:
+### Option 3: Manual Docker Run
 
 ```bash
-# Instance 2
-docker run -d --name temple-desktop-2 --privileged --shm-size 2gb \
-  -p 10023:22 -p 16902:6901 \
-  -v temple-desktop-2-data:/home/temple \
-  -v temple-desktop-2-docker:/var/lib/docker \
-  -e PASSWORD=temple -e VNC_PASSWORD=temple \
-  canadianbitcoin/temple-desktop-dev:latest
+# Build
+docker build \
+    --build-arg BASE_IMAGE=nvidia/cuda:12.6.2-devel-ubuntu24.04 \
+    -t temple-desktop:cuda .
 
-# Instance 3
-docker run -d --name temple-desktop-3 --privileged --shm-size 2gb \
-  -p 10024:22 -p 16903:6901 \
-  -v temple-desktop-3-data:/home/temple \
-  -v temple-desktop-3-docker:/var/lib/docker \
-  -e PASSWORD=temple -e VNC_PASSWORD=temple \
-  canadianbitcoin/temple-desktop-dev:latest
+# Run
+docker run -d --name temple-desktop-cuda \
+    --gpus all \
+    --privileged \
+    --shm-size=2gb \
+    -p 16901:6901 \
+    -p 10022:22 \
+    -e NVIDIA_VISIBLE_DEVICES=all \
+    -e NVIDIA_DRIVER_CAPABILITIES=all \
+    temple-desktop:cuda
 ```
 
-Or use the quickstart script:
+---
+
+## Supported CUDA Versions
+
+Based on `nvidia/cuda` official images:
+
+| Ubuntu | CUDA Versions |
+|--------|---------------|
+| 24.04 | 12.6.2, 12.5.1, 12.4.1, 12.3.2 |
+| 22.04 | 12.6.2, 12.5.1, 12.4.1, 11.8.0, 11.7.1 |
+
+Full list: https://hub.docker.com/r/nvidia/cuda/tags
+
+### Driver Compatibility
+
+| CUDA | Minimum Driver |
+|------|----------------|
+| 12.6 | 560.28+ |
+| 12.4 | 550.54+ |
+| 12.2 | 535.86+ |
+| 11.8 | 520.61+ |
+
+---
+
+## Verify GPU Acceleration
 
 ```bash
-./quickstart.sh desktop-2 16902 10023
-./quickstart.sh desktop-3 16903 10024
+# Inside container
+
+# Check CUDA
+nvidia-smi
+nvcc --version
+
+# Check OpenGL (software)
+glxinfo | grep "OpenGL renderer"
+
+# Check OpenGL (hardware accelerated)
+vglrun glxinfo | grep "OpenGL renderer"
+# Should show your NVIDIA GPU
+
+# Check Vulkan
+vulkaninfo | grep -i "GPU"
+
+# Run 3D apps with GPU
+vglrun glxgears
+vglrun blender
 ```
+
+---
 
 ## Access
 
@@ -119,6 +204,8 @@ Or use the quickstart script:
 | Web Desktop | https://localhost:16901 | temple / temple |
 | SSH | `ssh temple@localhost -p 10022` | SSH key or password |
 
+---
+
 ## Environment Variables
 
 | Variable | Default | Description |
@@ -126,105 +213,28 @@ Or use the quickstart script:
 | `PASSWORD` | temple | Linux user password |
 | `VNC_PASSWORD` | temple | VNC login password |
 | `TZ` | Asia/Shanghai | Timezone |
-| `SSH_PUBLIC_KEY` | (built-in) | SSH public key for authentication |
+| `NVIDIA_VISIBLE_DEVICES` | all | GPU visibility |
+| `NVIDIA_DRIVER_CAPABILITIES` | all | GPU capabilities |
 
-### SSH Configuration
+---
 
-SSH supports both password and public key authentication. To use your own key:
+## Other Branches
 
-```yaml
-environment:
-  - SSH_PUBLIC_KEY=ssh-rsa AAAA... your-key-comment
-```
+| Branch | Description | Link |
+|--------|-------------|------|
+| `main` | Base desktop environment | [main](https://github.com/9cat/docker-ubuntu-chrome-firefox-desktop) |
+| `cuda-support` | CUDA/OpenGL GPU acceleration (this branch) | [cuda-support](https://github.com/9cat/docker-ubuntu-chrome-firefox-desktop/tree/cuda-support) |
+| `android-support` | Android Emulator + automation tools | [android-support](https://github.com/9cat/docker-ubuntu-chrome-firefox-desktop/tree/android-support) |
 
-Or mount your authorized_keys file:
-
-```yaml
-volumes:
-  - ./authorized_keys:/home/temple/.ssh/authorized_keys:ro
-```
-
-## Claude Code
-
-Claude Code starts automatically in a tmux session when the container boots.
+### Combine CUDA + Android
 
 ```bash
-# SSH into container (auto-attaches to tmux)
-ssh temple@localhost -p 10022
-
-# Or manually attach
-docker exec -it temple-desktop tmux attach -t dev
+git checkout cuda-support
+git merge android-support
+# Resolve conflicts and build
 ```
 
-### tmux Windows
-
-| Window | Name | Purpose |
-|--------|------|---------|
-| 0 | claude | Claude Code (auto-started) |
-| 1 | shell | General shell |
-
-### tmux Shortcuts
-
-| Shortcut | Action |
-|----------|--------|
-| `Ctrl+b d` | Detach |
-| `Ctrl+b n` | Next window |
-| `Ctrl+b p` | Previous window |
-
-### API Key
-
-Set your Anthropic API key:
-
-```bash
-echo 'export ANTHROPIC_API_KEY=your-key' >> ~/.bashrc
-```
-
-## Chinese Input
-
-Chinese fonts and input methods (fcitx5) are pre-installed:
-
-- **Pinyin** (拼音)
-- **Wubi** (五笔)
-
-| Shortcut | Action |
-|----------|--------|
-| `Ctrl+Space` | Toggle Chinese/English |
-| `Ctrl+Shift` | Switch Pinyin/Wubi |
-
-## Docker-in-Docker
-
-True Docker-in-Docker is enabled by default. The container runs its own isolated Docker daemon:
-
-```bash
-docker ps              # List containers (inside this container)
-docker run hello-world # Run container (isolated from host)
-```
-
-Containers created inside are completely isolated from the host. Ports 51200-51239 are mapped for inner container services.
-
-To switch to Docker-outside-of-Docker (share host's Docker), edit `docker-compose.yml`:
-```yaml
-privileged: false
-volumes:
-  - /var/run/docker.sock:/var/run/docker.sock
-```
-
-## Management
-
-```bash
-docker compose up -d          # Start
-docker compose down           # Stop
-docker compose logs -f        # Logs
-docker compose up -d --build  # Rebuild
-docker compose down -v        # Reset all data
-```
-
-## Ports
-
-| Port | Service |
-|------|---------|
-| 22 | SSH |
-| 6901 | KasmVNC (HTTPS) |
+---
 
 ## License
 
