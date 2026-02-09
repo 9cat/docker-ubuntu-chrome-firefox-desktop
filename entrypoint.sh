@@ -6,6 +6,11 @@ echo "Ubuntu Desktop - Starting"
 echo "========================================"
 
 # ============================================
+# Fix home directory ownership (bind mount may be root-owned)
+# ============================================
+sudo chown temple:temple /home/temple
+
+# ============================================
 # Setup fcitx5 input method for Chinese
 # ============================================
 export GTK_IM_MODULE=fcitx
