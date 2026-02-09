@@ -38,6 +38,7 @@ fi
 
 # Create and start container
 echo "Creating container..."
+mkdir -p ./docker-data/home ./docker-data/docker
 docker run -d \
     --name $INSTANCE_NAME \
     --restart unless-stopped \
@@ -48,8 +49,8 @@ docker run -d \
     -e PASSWORD=$PASSWORD \
     -e VNC_PASSWORD=$PASSWORD \
     -e TZ=Asia/Shanghai \
-    -v ${INSTANCE_NAME}-data:/home/temple \
-    -v ${INSTANCE_NAME}-docker:/var/lib/docker \
+    -v $(pwd)/docker-data/home:/home/temple \
+    -v $(pwd)/docker-data/docker:/var/lib/docker \
     $IMAGE
 
 echo ""
@@ -60,6 +61,13 @@ echo "Web VNC: https://localhost:${VNC_PORT}"
 echo "SSH:     ssh temple@localhost -p ${SSH_PORT}"
 echo "User:    temple"
 echo "Password: $PASSWORD"
+echo ""
+echo "⚠️  SECURITY: Change default passwords!"
+echo "   docker exec -it $INSTANCE_NAME vncpasswd"
+echo "   docker exec -it $INSTANCE_NAME sh -c 'echo temple:新密码 | chpasswd'"
+echo ""
+echo "Data:    $(pwd)/docker-data/"
+echo "  To change storage location, edit the -v paths above"
 echo "========================================"
 echo ""
 echo "Attach to Claude Code session:"
