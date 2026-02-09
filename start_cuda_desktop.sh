@@ -69,10 +69,15 @@ else
 fi
 echo "✅ 代码就绪 (branch: $BRANCH)"
 
-# 5. 构建并启动
+# 5. 创建数据目录并启动
 echo ""
 echo "[5/5] 构建 CUDA 镜像并启动..."
-docker compose -f docker-compose.yml -f docker-compose.cuda.yml up -d --build
+mkdir -p ./docker-data/home ./docker-data/docker
+docker compose -f docker-compose.yml -f docker-compose.cuda.yml build
+docker compose -f docker-compose.yml -f docker-compose.cuda.yml up -d
+
+# 获取实际存储路径
+DATA_PATH="$(pwd)/docker-data"
 
 echo ""
 echo "=========================================="
@@ -83,6 +88,15 @@ echo "  VNC 访问:  https://localhost:16901"
 echo "  SSH 访问:  ssh temple@localhost -p 10022"
 echo "  用户/密码:  temple / temple"
 echo ""
+echo "  数据存储:  ${DATA_PATH}/"
+echo "    ├── home/     用户数据 (/home/temple)"
+echo "    └── docker/   Docker-in-Docker 数据"
+echo ""
+echo "  💡 如需修改存储位置，编辑 docker-compose.yml 中的 volumes:"
+echo "     - /your/path/home:/home/temple"
+echo "     - /your/path/docker:/var/lib/docker"
+echo ""
 echo "  查看日志:  docker compose logs -f"
 echo "  停止:      docker compose -f docker-compose.yml -f docker-compose.cuda.yml down"
+echo "  验证GPU:   docker exec -it temple-desktop nvidia-smi"
 echo "=========================================="

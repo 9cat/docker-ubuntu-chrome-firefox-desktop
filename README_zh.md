@@ -38,12 +38,9 @@ services:
       - VNC_PASSWORD=temple
       - TZ=Asia/Shanghai
     volumes:
-      - desktop-data:/home/temple
+      - ./docker-data/home:/home/temple
       - /var/run/docker.sock:/var/run/docker.sock
     shm_size: 2gb
-
-volumes:
-  desktop-data:
 EOF
 
 docker compose up -d

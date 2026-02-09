@@ -25,8 +25,8 @@ services:
       # SSH_PUBLIC_KEY - Set your SSH public key to override defaults
       # - SSH_PUBLIC_KEY=${SSH_PUBLIC_KEY:-}
     volumes:
-      - desktop-data:/home/temple
-      - docker-data:/var/lib/docker    # Persistent Docker data for DinD
+      - ./docker-data/home:/home/temple
+      - ./docker-data/docker:/var/lib/docker    # Persistent Docker data for DinD
       # For Docker-outside-of-Docker (DooD) instead, uncomment below and set privileged: false
       # - /var/run/docker.sock:/var/run/docker.sock
     cap_add:
@@ -36,9 +36,6 @@ services:
     # Shared memory for Chrome/GPU performance
     shm_size: 2gb
 
-volumes:
-  desktop-data:
-    # Persistent storage for user data
-    # Use 'docker compose down -v' to reset
-  docker-data:
-    # Persistent storage for Docker-in-Docker data
+# Data stored in ./docker-data/ (bind mount, not Docker volumes)
+# To change storage location, edit the volume paths above or set DATA_DIR:
+#   DATA_DIR=/your/path docker compose up -d
