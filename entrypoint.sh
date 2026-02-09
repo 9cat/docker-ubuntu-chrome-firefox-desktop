@@ -10,6 +10,11 @@ echo "========================================"
 # ============================================
 sudo chown temple:temple /home/temple
 
+# Copy skeleton files if home is empty (bind mount)
+for f in .bashrc .profile; do
+    [ ! -f ~/$f ] && [ -f /etc/skel/$f ] && cp /etc/skel/$f ~/
+done
+
 # ============================================
 # Setup fcitx5 input method for Chinese
 # ============================================
