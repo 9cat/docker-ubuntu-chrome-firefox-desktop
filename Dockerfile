@@ -84,13 +84,6 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # ============================================
-# 1b. Node.js 22 LTS (required for Claude Code)
-# ============================================
-RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
-    apt-get install -y nodejs && \
-    rm -rf /var/lib/apt/lists/*
-
-# ============================================
 # 2. Docker CLI + Docker Compose (for Docker-in-Docker)
 # ============================================
 RUN install -m 0755 -d /etc/apt/keyrings && \
@@ -354,9 +347,9 @@ RUN mkdir -p /home/temple/.config/autostart && \
     chown -R temple:temple /home/temple/.config/autostart /home/temple/.config/fcitx5
 
 # ============================================
-# 13. Install Claude Code globally
+# 13. Install Claude Code (native installer)
 # ============================================
-RUN npm install -g @anthropic-ai/claude-code
+RUN curl -fsSL https://cdn.jsdelivr.net/npm/@anthropic-ai/claude-code@latest/install.sh | sh
 
 # ============================================
 # 14. Entrypoint
