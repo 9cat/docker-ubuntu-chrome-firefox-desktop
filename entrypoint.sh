@@ -15,6 +15,10 @@ for f in .bashrc .profile; do
     [ ! -f ~/$f ] && [ -f /etc/skel/$f ] && cp /etc/skel/$f ~/
 done
 
+# Add ~/.local/bin to PATH for Claude Code
+grep -q "~/.local/bin" ~/.bashrc 2>/dev/null || echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
+export PATH="$HOME/.local/bin:$PATH"
+
 # ============================================
 # Setup fcitx5 input method for Chinese
 # ============================================
