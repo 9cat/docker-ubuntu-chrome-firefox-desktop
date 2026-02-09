@@ -37,5 +37,4 @@ services:
     shm_size: 2gb
 
 # Data stored in ./docker-data/ (bind mount, not Docker volumes)
-# To change storage location, edit the volume paths above or set DATA_DIR:
-#   DATA_DIR=/your/path docker compose up -d
+# To change storage location, edit the volume paths above
