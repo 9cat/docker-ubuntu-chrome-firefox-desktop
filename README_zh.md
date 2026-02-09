@@ -39,7 +39,7 @@ services:
       - TZ=Asia/Shanghai
     volumes:
       - ./docker-data/home:/home/temple
-      - /var/run/docker.sock:/var/run/docker.sock
+      - ./docker-data/docker:/var/lib/docker
     shm_size: 2gb
 EOF
 
@@ -155,11 +155,25 @@ volumes:
 
 ```bash
 docker compose up -d          # 启动
-docker compose down           # 停止
+docker compose down           # 停止（保留数据）
 docker compose logs -f        # 查看日志
 docker compose up -d --build  # 重新构建
-docker compose down -v        # 重置所有数据
+./stop_desktop.sh             # 停止容器
+./stop_desktop.sh clean       # 停止 + 删除数据
+./stop_desktop.sh purge       # 停止 + 删除数据 + 删除镜像
 ```
+
+## 数据存储
+
+数据存储在项目目录下的 `./docker-data/`（bind mount），不使用 Docker named volumes：
+
+```
+./docker-data/
+├── home/     用户数据 (/home/temple)
+└── docker/   Docker-in-Docker 数据
+```
+
+如需修改存储位置，编辑 `docker-compose.yml` 中的 volumes 路径。
 
 ## 端口
 
