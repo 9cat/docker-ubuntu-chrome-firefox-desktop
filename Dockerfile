@@ -76,7 +76,7 @@ RUN apt-get update && \
 # ============================================
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-        libxtst6 libxv1 libturbojpeg && \
+        libxtst6 libxv1 libturbojpeg libglu1-mesa && \
     VIRTUALGL_VERSION=3.1.1 && \
     curl -fsSL "https://github.com/VirtualGL/virtualgl/releases/download/${VIRTUALGL_VERSION}/virtualgl_${VIRTUALGL_VERSION}_amd64.deb" -o /tmp/virtualgl.deb && \
     dpkg -i /tmp/virtualgl.deb && \
