@@ -349,7 +349,7 @@ RUN mkdir -p /home/temple/.config/autostart && \
 # ============================================
 # 13. Install Claude Code (native installer)
 # ============================================
-RUN curl -fsSL https://cdn.jsdelivr.net/npm/@anthropic-ai/claude-code@latest/install.sh | sh
+RUN curl -fsSL https://claude.ai/install.sh | bash
 
 # ============================================
 # 14. Entrypoint
