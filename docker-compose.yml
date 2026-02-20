@@ -24,6 +24,11 @@ services:
       - NVIDIA_DRIVER_CAPABILITIES=all
       # SSH_PUBLIC_KEY - Set your SSH public key to override defaults
       # - SSH_PUBLIC_KEY=${SSH_PUBLIC_KEY:-}
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+      - 1.1.1.1
+    dns_search: []
     volumes:
       - ./docker-data/home:/home/temple
       - ./docker-data/docker:/var/lib/docker    # Persistent Docker data for DinD

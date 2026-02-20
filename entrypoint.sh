@@ -15,9 +15,8 @@ for f in .bashrc .profile; do
     [ ! -f ~/$f ] && [ -f /etc/skel/$f ] && cp /etc/skel/$f ~/
 done
 
-# Add ~/.local/bin to PATH for Claude Code
-grep -q "~/.local/bin" ~/.bashrc 2>/dev/null || echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
-export PATH="$HOME/.local/bin:$PATH"
+# Claude Code is installed in /usr/local/bin/claude (survives volume mount)
+# No need to modify PATH, claude is already accessible globally
 
 # ============================================
 # Setup fcitx5 input method for Chinese
@@ -222,6 +221,8 @@ done
 # Start tmux session for Claude Code development
 # ============================================
 echo "Starting tmux session 'dev'..."
+
+# Claude Code is in /usr/local/bin/claude, accessible globally
 tmux new-session -d -s dev -n claude
 tmux send-keys -t dev:claude "cd ~" C-m
 tmux send-keys -t dev:claude "claude --dangerously-skip-permissions" C-m

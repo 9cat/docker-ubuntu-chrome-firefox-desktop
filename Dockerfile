@@ -40,7 +40,7 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         ca-certificates curl wget gnupg sudo locales tzdata \
         openssh-server software-properties-common ssl-cert openssl \
-        tmux htop vim libnss3-tools git ripgrep lsb-release && \
+        tmux htop vim nano libnss3-tools git ripgrep lsb-release && \
     locale-gen en_US.UTF-8 && \
     rm -rf /var/lib/apt/lists/*
 
@@ -157,7 +157,8 @@ RUN userdel -r ubuntu 2>/dev/null || true && \
     usermod -aG sudo temple && \
     usermod -aG ssl-cert temple && \
     usermod -aG docker temple && \
-    echo "temple ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+    echo "temple ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers && \
+    echo 'export PATH="$HOME/.local/bin:$PATH"' >> /home/temple/.bashrc
 
 # ============================================
 # 7. Create Chrome wrapper script (needs --no-sandbox in Docker)
@@ -347,9 +348,15 @@ RUN mkdir -p /home/temple/.config/autostart && \
     chown -R temple:temple /home/temple/.config/autostart /home/temple/.config/fcitx5
 
 # ============================================
-# 13. Install Claude Code (native installer)
+# 13. Install Claude Code
+# Install to /opt/claude to survive volume mounts
 # ============================================
-RUN curl -fsSL https://claude.ai/install.sh | bash
+USER root
+RUN mkdir -p /opt/claude/versions && \
+    curl -fsSL https://claude.ai/install.sh | bash && \
+    cp -r /root/.local/share/claude/versions/* /opt/claude/versions/ && \
+    ln -sf /opt/claude/versions/2.1.47 /usr/local/bin/claude && \
+    chmod -R 755 /opt/claude
 
 # ============================================
 # 14. Entrypoint
