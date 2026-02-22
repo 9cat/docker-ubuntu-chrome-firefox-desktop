@@ -30,8 +30,10 @@ services:
       - 1.1.1.1
     dns_search: []
     volumes:
+      # User data persistent - survives container rebuild
       - ./docker-data/home:/home/temple
-      - ./docker-data/docker:/var/lib/docker    # Persistent Docker data for DinD
+      # Docker data NOT persistent - cleared on container rebuild
+      - /tmp/docker-data/docker:/var/lib/docker
       # For Docker-outside-of-Docker (DooD) instead, uncomment below and set privileged: false
       # - /var/run/docker.sock:/var/run/docker.sock
     cap_add:
