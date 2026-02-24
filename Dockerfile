@@ -157,8 +157,7 @@ RUN userdel -r ubuntu 2>/dev/null || true && \
     usermod -aG sudo temple && \
     usermod -aG ssl-cert temple && \
     usermod -aG docker temple && \
-    echo "temple ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers && \
-    echo 'export PATH="$HOME/.local/bin:$PATH"' >> /home/temple/.bashrc
+    echo "temple ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 # ============================================
 # 7. Create Chrome wrapper script (needs --no-sandbox in Docker)

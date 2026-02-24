@@ -15,8 +15,9 @@ for f in .bashrc .profile; do
     [ ! -f ~/$f ] && [ -f /etc/skel/$f ] && cp /etc/skel/$f ~/
 done
 
-# Claude Code is installed in /usr/local/bin/claude (survives volume mount)
-# No need to modify PATH, claude is already accessible globally
+# Ensure /usr/local/bin is in PATH for Claude Code
+grep -q "/usr/local/bin" ~/.bashrc 2>/dev/null || echo 'export PATH="/usr/local/bin:$PATH"' >> ~/.bashrc
+export PATH="/usr/local/bin:$PATH"
 
 # ============================================
 # Setup fcitx5 input method for Chinese
