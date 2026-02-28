@@ -14,7 +14,7 @@ services:
     ports:
       - "10022:22"              # SSH access
       - "16901:6901"            # KasmVNC web interface (HTTPS)
-      - "51200-51239:51200-51239"  # Docker container ports (for DinD)
+      - "51100-51129:51100-51129"  # Docker container ports (for DinD)
     environment:
       - USER=${USER:-temple}
       - PASSWORD=${PASSWORD:-temple}

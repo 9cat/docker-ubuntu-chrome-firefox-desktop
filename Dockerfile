@@ -354,7 +354,8 @@ USER root
 RUN mkdir -p /opt/claude/versions && \
     curl -fsSL https://claude.ai/install.sh | bash && \
     cp -r /root/.local/share/claude/versions/* /opt/claude/versions/ && \
-    ln -sf /opt/claude/versions/2.1.47 /usr/local/bin/claude && \
+    CLAUDE_VER=$(ls /opt/claude/versions/ | head -1) && \
+    ln -sf /opt/claude/versions/${CLAUDE_VER} /usr/local/bin/claude && \
     chmod -R 755 /opt/claude
 
 # ============================================
