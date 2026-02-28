@@ -16,11 +16,9 @@ for f in .bashrc .profile; do
 done
 
 # Ensure /usr/local/bin is in PATH for Claude Code
-# Remove old PATH settings that might be wrong
-sed -i '/PATH.*\.local\/bin/d' ~/.bashrc 2>/dev/null
-sed -i '/PATH.*\.local\/bin/d' ~/.bashrc 2>/dev/null
-# Add correct PATH at the end of .bashrc
-grep -q "/usr/local/bin" ~/.bashrc 2>/dev/null || echo 'export PATH="/usr/local/bin:$PATH"' >> ~/.bashrc
+# Directly write to .bashrc with absolute path to ensure it works
+grep -q "/usr/local/bin" /home/temple/.bashrc 2>/dev/null || echo 'export PATH="/usr/local/bin:$PATH"' >> /home/temple/.bashrc
+# Force PATH for current session
 export PATH="/usr/local/bin:$PATH"
 
 # ============================================
