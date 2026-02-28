@@ -32,8 +32,8 @@ services:
     volumes:
       # User data persistent - survives container rebuild
       - ./docker-data/home:/home/temple
-      # Docker data NOT persistent - cleared on container rebuild
-      - /tmp/docker-data/docker:/var/lib/docker
+      # Docker data persistent - survives container rebuild
+      - ./docker-data/docker:/var/lib/docker
       # For Docker-outside-of-Docker (DooD) instead, uncomment below and set privileged: false
       # - /var/run/docker.sock:/var/run/docker.sock
     cap_add:
